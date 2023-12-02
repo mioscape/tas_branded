@@ -1,0 +1,50 @@
+import 'package:flutter/material.dart';
+import 'package:tas_branded/controller/database_helper.dart'; // Import your database helper
+
+class AddKategoriPage extends StatefulWidget {
+  @override
+  _AddKategoriPageState createState() => _AddKategoriPageState();
+}
+
+class _AddKategoriPageState extends State<AddKategoriPage> {
+  final TextEditingController _namaController = TextEditingController();
+
+  // Function to add a new category
+  Future<void> _addKategori() async {
+    String nama = _namaController.text.trim();
+
+    // Perform validation if needed
+
+    // Add category to the database
+    await DatabaseHelper().addKategori(nama);
+
+    // Navigate back to the previous screen (homepage)
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Tambah Data Kategori'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _namaController,
+              decoration: InputDecoration(labelText: 'Nama Kategori'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _addKategori,
+              child: Text('Tambah Kategori'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
