@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tas_branded/controller/database_helper.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class AddTasPage extends StatefulWidget {
   final DatabaseHelper databaseHelper;
@@ -13,8 +15,10 @@ class AddTasPage extends StatefulWidget {
 class _AddTasPageState extends State<AddTasPage> {
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _hargaController = TextEditingController();
+  final TextEditingController _stokController = TextEditingController();
   int? _selectedCategoryId;
   List<Map<String, dynamic>> _categories = []; // Store the fetched categories
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -24,13 +28,27 @@ class _AddTasPageState extends State<AddTasPage> {
 
   Future<void> _fetchCategories() async {
     // Query the database for categories
-    List<Map<String, dynamic>> categories = await widget.databaseHelper.getCategories();
+    List<Map<String, dynamic>> categories = await widget.databaseHelper.getDataCategories();
 
     // Update the state with the fetched categories
     setState(() {
       _categories = categories;
     });
   }
+
+  Future<void> _selectImage() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.image,
+  );
+
+  if (result != null) {
+    File file = File(result.files.single.path!);
+
+    setState(() {
+      _selectedImage = file;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +67,11 @@ class _AddTasPageState extends State<AddTasPage> {
             TextField(
               controller: _hargaController,
               decoration: InputDecoration(labelText: 'Harga'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _stokController,
+              decoration: InputDecoration(labelText: 'Stok'),
               keyboardType: TextInputType.number,
             ),
             DropdownButtonFormField<int>(
@@ -79,6 +102,15 @@ class _AddTasPageState extends State<AddTasPage> {
               },
               child: Text('Tambah Tas'),
             ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                _selectImage();
+              },
+              child: Text('Pilih Gambar'),
+            ),
+            if (_selectedImage != null)
+              Image.file(_selectedImage!, height: 100),
           ],
         ),
       ),
@@ -86,40 +118,42 @@ class _AddTasPageState extends State<AddTasPage> {
   }
 
   Future<void> _addTas(BuildContext context) async {
-  // Validate data
-  if (_namaController.text.trim().isEmpty ||
-      _hargaController.text.trim().isEmpty ||
-      _selectedCategoryId == null) {
-    // Show an error message or handle the validation error as needed
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Error'),
-          content: Text('Please fill in all fields.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
+    // Validate data
+    if (_namaController.text.trim().isEmpty ||
+        _hargaController.text.trim().isEmpty ||
+        _stokController.text.trim().isEmpty ||
+        _selectedCategoryId == null) {
+      // Show an error message or handle the validation error as needed
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Please fill in all fields.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Add data tas to the database
+    await widget.databaseHelper.addTasWithImage(
+      _namaController.text.trim(),
+      int.tryParse(_hargaController.text) ?? 0,
+      int.tryParse(_stokController.text) ?? 0,
+      _selectedImage,
+      _selectedCategoryId!,
     );
-    return;
+
+    // Navigate back to the previous page
+    Navigator.of(context).pop();
   }
-
-  // Add data tas to the database
-  await widget.databaseHelper.addTas(
-    _namaController.text.trim(),
-    int.tryParse(_hargaController.text) ?? 0,
-    _selectedCategoryId!,
-  );
-
-  // Navigate back to the previous page
-  Navigator.of(context).pop();
-}
-
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tas_branded/controller/database_helper.dart';
 import 'package:tas_branded/view/add_tas_page.dart';
+import 'package:tas_branded/view/data_list_page.dart';
 import 'package:tas_branded/view/home_page.dart';
 import 'package:tas_branded/view/add_kategori_page.dart';
 
@@ -26,6 +27,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(),
         '/add_kategori': (context) => AddKategoriPage(),
         '/add_tas': (context) => AddTasPage(databaseHelper: databaseHelper),
+        '/data_list': (context) => DataListPage(),
+        '/home_user': (context) => HomePage(),
       },
     );
   }

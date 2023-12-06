@@ -13,7 +13,28 @@ class _AddKategoriPageState extends State<AddKategoriPage> {
   Future<void> _addKategori() async {
     String nama = _namaController.text.trim();
 
-    // Perform validation if needed
+    // Validate data
+    if (nama.isEmpty) {
+      // Show an error message or handle the validation error as needed
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Please enter a category name.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
 
     // Add category to the database
     await DatabaseHelper().addKategori(nama);

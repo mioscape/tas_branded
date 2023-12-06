@@ -54,7 +54,8 @@ class _HomePageState extends State<HomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  _navigateToDataList(context);
+                   Navigator.pushNamed(context, '/data_list'); // Use the route you defined
+                  // _navigateToDataList(context);
                 },
                 child: Text('Lihat Data'),
               ),

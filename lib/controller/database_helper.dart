@@ -1,5 +1,7 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 import 'package:path/path.dart';
+// import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static DatabaseHelper? _instance;
@@ -32,6 +34,7 @@ class DatabaseHelper {
             nama TEXT,
             harga INTEGER,
             kategori_id INTEGER,
+            image_path TEXT,
             FOREIGN KEY (kategori_id) REFERENCES kategori_tas(id)
           )
         ''');
@@ -56,6 +59,8 @@ class DatabaseHelper {
     return _database;
   }
 
+  // Existing methods...
+
   // Function to add a new category to the database
   Future<void> addKategori(String nama) async {
     final Database database = await _database.database;
@@ -75,9 +80,80 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getCategories() async {
-    return _database.query('kategori_tas');
+  Future<int> addTasWithImage(String nama, int harga, int kategoriId, File? image, int stok) async {
+  final Database database = await _database.database;
+
+  // Handle the image file as needed (e.g., convert to bytes)
+  // Use the image data in your insert query as required
+  // For example, you can convert the image to bytes using image.readAsBytesSync()
+
+  // For simplicity, this example assumes you're saving the image path to the database
+  String imagePath = image?.path ?? '';
+
+  int tasId = await database.transaction<int>((txn) async {
+    int id = await txn.insert(
+      'tas',
+      {
+        'nama': nama,
+        'harga': harga,
+        'kategori_id': kategoriId,
+        'image_path': imagePath,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    await txn.insert(
+      'stok_tas',
+      {'tas_id': id, 'stok': stok},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    return id;
+  });
+
+  return tasId;
+}
+
+
+  Future<List<Map<String, dynamic>>> getDataTas() async {
+    final Database db = await _database;
+
+    // Fetch data from 'tas' table
+    final List<Map<String, dynamic>> tasList = await db.query('tas');
+    List<Map<String, dynamic>> newTasList = List.from(tasList);
+
+    // Iterate through the tasList and fetch kategori_nama for each item
+    for (var i = 0; i < tasList.length; i++) {
+      final int kategoriId = tasList[i]['kategori_id'] as int;
+
+      // Fetch kategori_nama based on kategori_id
+      final List<Map<String, dynamic>> kategoriData = await db.query(
+        'kategori_tas',
+        where: 'id = ?',
+        whereArgs: [kategoriId],
+      );
+
+      if (kategoriData.isNotEmpty) {
+        final String kategoriNama = kategoriData[0]['nama'] as String;
+
+        // Create a mutable copy of tas and add 'kategori_nama'
+        Map<String, dynamic> mutableTas = Map.from(tasList[i]);
+        mutableTas['kategori_nama'] = kategoriNama;
+
+        // Update the original tas in the new list
+        newTasList[i] = mutableTas;
+      }
+    }
+
+    return newTasList;
+  }
+  
+  Future<List<Map<String, dynamic>>> getDataCategories() async {
+    return await _database.query('kategori_tas');
   }
 
-  // Other methods for CRUD operations go here
+  Future<void> deleteTas(int id) async {
+    final Database db = await _database;
+    await db.delete('tas', where: 'id = ?', whereArgs: [id]);
+  }
 }
