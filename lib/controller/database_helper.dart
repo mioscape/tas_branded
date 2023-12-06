@@ -26,7 +26,7 @@ class DatabaseHelper {
 
   Future<Database> initializeDatabase() async {
     _database = await openDatabase(
-      join(await getDatabasesPath(), 'tas_branded.db'),
+      join(await getDatabasesPath(), 'tas_branded_dev_v1.db'),
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE tas (
@@ -116,37 +116,50 @@ class DatabaseHelper {
 
 
   Future<List<Map<String, dynamic>>> getDataTas() async {
-    final Database db = await _database;
+  final Database db = await database;
 
-    // Fetch data from 'tas' table
-    final List<Map<String, dynamic>> tasList = await db.query('tas');
-    List<Map<String, dynamic>> newTasList = List.from(tasList);
+  // Fetch data from 'tas' table including 'stok' field
+  final List<Map<String, dynamic>> tasList = await db.rawQuery('''
+    SELECT tas.*, COALESCE(stok_tas.stok, 0) AS stok
+    FROM tas
+    LEFT JOIN stok_tas ON tas.id = stok_tas.tas_id
+  ''');
 
-    // Iterate through the tasList and fetch kategori_nama for each item
-    for (var i = 0; i < tasList.length; i++) {
-      final int kategoriId = tasList[i]['kategori_id'] as int;
+  List<Map<String, dynamic>> newTasList = List.from(tasList);
 
-      // Fetch kategori_nama based on kategori_id
-      final List<Map<String, dynamic>> kategoriData = await db.query(
-        'kategori_tas',
-        where: 'id = ?',
-        whereArgs: [kategoriId],
-      );
+  // Iterate through the tasList and fetch kategori_nama for each item
+  for (var i = 0; i < tasList.length; i++) {
+    final int kategoriId = tasList[i]['kategori_id'] as int;
 
-      if (kategoriData.isNotEmpty) {
-        final String kategoriNama = kategoriData[0]['nama'] as String;
+    // Fetch kategori_nama based on kategori_id
+    final List<Map<String, dynamic>> kategoriData = await db.query(
+      'kategori_tas',
+      where: 'id = ?',
+      whereArgs: [kategoriId],
+    );
 
-        // Create a mutable copy of tas and add 'kategori_nama'
-        Map<String, dynamic> mutableTas = Map.from(tasList[i]);
-        mutableTas['kategori_nama'] = kategoriNama;
+    print('Tas ID: ${tasList[i]['id']}');
+    print('Kategori ID: $kategoriId');
 
-        // Update the original tas in the new list
-        newTasList[i] = mutableTas;
-      }
+    if (kategoriData.isNotEmpty) {
+      final String kategoriNama = kategoriData[0]['nama'] as String;
+      print('Kategori Nama: $kategoriNama');
+
+      // Create a mutable copy of tas and add 'kategori_nama'
+      Map<String, dynamic> mutableTas = Map.from(tasList[i]);
+      mutableTas['kategori_nama'] = kategoriNama;
+
+      // Update the original tas in the new list
+      newTasList[i] = mutableTas;
+    } else {
+      print('No category data found for ID: $kategoriId');
     }
-
-    return newTasList;
   }
+
+  return newTasList;
+}
+
+
   
   Future<List<Map<String, dynamic>>> getDataCategories() async {
     return await _database.query('kategori_tas');

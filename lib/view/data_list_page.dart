@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:tas_branded/controller/database_helper.dart';
 
 class DataListPage extends StatefulWidget {
@@ -9,7 +9,7 @@ class DataListPage extends StatefulWidget {
 
 class _DataListPageState extends State<DataListPage> {
   late DatabaseHelper _databaseHelper;
-  List<Map<String, dynamic>> _originalTasList = []; // Tambahkan variabel untuk menyimpan data asli
+  List<Map<String, dynamic>> _originalTasList = [];
   List<Map<String, dynamic>> _tasList = [];
   Map<String, List<Map<String, dynamic>>> kategoriData = {};
   TextEditingController _searchController = TextEditingController();
@@ -24,12 +24,12 @@ class _DataListPageState extends State<DataListPage> {
   Future<void> _readData() async {
   await _databaseHelper.initializeDatabase();
 
-  // Fetch data from 'tas' table
+  // Fetch data from 'tas' table including 'stok' field
   final List<Map<String, dynamic>> tasList = await _databaseHelper.getDataTas();
   print('Tas List: $tasList');
 
   setState(() {
-    _originalTasList = List.from(tasList); // Simpan data asli
+    _originalTasList = List.from(tasList);
     _tasList = tasList;
     kategoriData = _groupDataByKategori(_tasList);
   });
@@ -38,28 +38,27 @@ class _DataListPageState extends State<DataListPage> {
 }
 
   Map<String, List<Map<String, dynamic>>> _groupDataByKategori(List<Map<String, dynamic>> tasList) {
-  Map<String, List<Map<String, dynamic>>> groupedData = {};
+    Map<String, List<Map<String, dynamic>>> groupedData = {};
 
-  for (var tas in tasList) {
-    var kategoriId = tas['kategori_id'] as int?;
-    var kategoriNama = tas['kategori_nama'] as String?;
-    
-    print('Kategori ID: $kategoriId, Kategori Nama: $kategoriNama');
+    for (var tas in tasList) {
+      var kategoriId = tas['kategori_id'] as int?;
+      var kategoriNama = tas['kategori_nama'] as String?;
 
-    if (kategoriId != null && kategoriNama != null) {
-      var kategoriKey = '$kategoriId-$kategoriNama';
+      print('Kategori ID: $kategoriId, Kategori Nama: $kategoriNama');
 
-      if (!groupedData.containsKey(kategoriKey)) {
-        groupedData[kategoriKey] = [];
+      if (kategoriId != null && kategoriNama != null) {
+        var kategoriKey = '$kategoriId-$kategoriNama';
+
+        if (!groupedData.containsKey(kategoriKey)) {
+          groupedData[kategoriKey] = [];
+        }
+
+        groupedData[kategoriKey]!.add(tas);
       }
-
-      groupedData[kategoriKey]!.add(tas);
     }
+
+    return groupedData;
   }
-
-  return groupedData;
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +86,7 @@ class _DataListPageState extends State<DataListPage> {
                         onPressed: () {
                           setState(() {
                             _searchController.clear();
-                            _tasList = List.from(_originalTasList); // Reset ke data asli
+                            _tasList = List.from(_originalTasList);
                             kategoriData = _groupDataByKategori(_tasList);
                           });
                         },
@@ -100,43 +99,59 @@ class _DataListPageState extends State<DataListPage> {
             child: ListView.builder(
               itemCount: kategoriData.keys.length,
               itemBuilder: (context, index) {
-          String kategoriKey = kategoriData.keys.elementAt(index);
-          List<Map<String, dynamic>> dataKategori = kategoriData[kategoriKey]!;
+                String kategoriKey = kategoriData.keys.elementAt(index);
+                List<Map<String, dynamic>> dataKategori = kategoriData[kategoriKey]!;
 
-          // Split kategoriKey into kategoriId and kategoriNama
-          List<String> parts = kategoriKey.split('-');
-          int kategoriId = int.parse(parts[0]);
-          String kategoriNama = parts[1];
+                List<String> parts = kategoriKey.split('-');
+                int kategoriId = int.parse(parts[0]);
+                String kategoriNama = parts[1];
 
-          return ExpansionTile(
-            title: Text('Kategori $kategoriNama'),
-            children: dataKategori.map((tas) {
-              return ListTile(
-                title: Text(tas['nama']),
-                subtitle: Text('Harga: ${tas['harga']}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () {
-                        // TODO: Implement edit functionality
-                        // You can navigate to an edit page or show a dialog for editing
-                        // For example, Navigator.pushNamed(context, '/edit_tas', arguments: tas['id']);
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        _deleteData(tas['id']);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          );
-        },
+                return ExpansionTile(
+                  title: Text('Kategori $kategoriNama'),
+                  children: dataKategori.map((tas) {
+                    return ListTile(
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: tas['image_path'] != null
+                                ? FileImage(File(tas['image_path']))
+                                : AssetImage('assets/images/no_image.png') as ImageProvider,
+                          ),
+                        ),
+                      ),
+                      title: Text(tas['nama']),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Harga: ${tas['harga']}'),
+                          Text('Stok: ${tas['stok']}'),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              // TODO: Implement edit functionality
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              _deleteData(tas['id']);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ),
         ],
@@ -161,15 +176,15 @@ class _DataListPageState extends State<DataListPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
+                Navigator.of(context).pop();
               },
               child: Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () async {
                 await _databaseHelper.deleteTas(id);
-                _readData(); // Perbarui tampilan setelah menghapus
-                Navigator.of(context).pop(); // Tutup dialog
+                _readData();
+                Navigator.of(context).pop();
               },
               child: Text('Hapus'),
             ),

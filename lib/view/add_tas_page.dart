@@ -79,6 +79,7 @@ class _AddTasPageState extends State<AddTasPage> {
               value: _selectedCategoryId,
               onChanged: (int? newValue) {
                 setState(() {
+                  print(newValue);
                   _selectedCategoryId = newValue;
                 });
               },
@@ -98,19 +99,19 @@ class _AddTasPageState extends State<AddTasPage> {
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                _addTas(context);
-              },
-              child: Text('Tambah Tas'),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
                 _selectImage();
               },
               child: Text('Pilih Gambar'),
             ),
             if (_selectedImage != null)
               Image.file(_selectedImage!, height: 100),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () {
+                _addTas(context);
+              },
+              child: Text('Tambah Tas'),
+            ),
           ],
         ),
       ),
@@ -148,9 +149,9 @@ class _AddTasPageState extends State<AddTasPage> {
     await widget.databaseHelper.addTasWithImage(
       _namaController.text.trim(),
       int.tryParse(_hargaController.text) ?? 0,
-      int.tryParse(_stokController.text) ?? 0,
-      _selectedImage,
       _selectedCategoryId!,
+      _selectedImage,
+      int.tryParse(_stokController.text) ?? 0,
     );
 
     // Navigate back to the previous page

@@ -30,6 +30,13 @@ class MyApp extends StatelessWidget {
         '/data_list': (context) => DataListPage(),
         '/home_user': (context) => HomePage(),
       },
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color.fromARGB(129, 104, 58, 183),
+        ),
+      ),
     );
   }
 }

@@ -52,7 +52,6 @@ class _AddKategoriPageState extends State<AddKategoriPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _namaController,

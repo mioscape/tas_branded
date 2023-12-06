@@ -34,43 +34,43 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Toko Tas Branded'),
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 16), // Spacer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                 Navigator.pushNamed(context, '/add_tas'); // Use
-                },
-                child: Text('Tambah Data'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/add_tas'); // Use
+              },
+              child: Text('Tambah Data Tas'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.all(16.0),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/add_kategori'); // Use the route you defined
-                },
-                child: Text('Tambah Data Kategori'),
+            ),
+            SizedBox(height: 16.0), // Add a gap of 16 pixels
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/add_kategori'); // Use the route you defined
+              },
+              child: Text('Tambah Data Kategori'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.all(16.0),
               ),
-              ElevatedButton(
-                onPressed: () {
-                   Navigator.pushNamed(context, '/data_list'); // Use the route you defined
-                  // _navigateToDataList(context);
-                },
-                child: Text('Lihat Data'),
+            ),
+            SizedBox(height: 16.0), // Add a gap of 16 pixels
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/data_list'); // Use the route you defined
+                // _navigateToDataList(context);
+              },
+              child: Text('Lihat Data'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.all(16.0),
               ),
-            ],
-          ),
-          SizedBox(height: 16), // Spacer
-        ],
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  void _navigateToDataList(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DataListPage()),
     );
   }
 }
