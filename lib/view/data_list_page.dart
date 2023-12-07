@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tas_branded/controller/database_helper.dart';
+import 'package:tas_branded/view/edit_tas_page.dart';
 
 class DataListPage extends StatefulWidget {
   @override
@@ -119,7 +120,7 @@ class _DataListPageState extends State<DataListPage> {
                             fit: BoxFit.cover,
                             image: tas['image_path'] != null
                                 ? FileImage(File(tas['image_path']))
-                                : AssetImage('assets/images/no_image.png') as ImageProvider,
+                                : const AssetImage('assets/images/no_image.png') as ImageProvider,
                           ),
                         ),
                       ),
@@ -137,13 +138,21 @@ class _DataListPageState extends State<DataListPage> {
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
+                              _navigateToEditTas(this.context, tas['id']);
                               // TODO: Implement edit functionality
                             },
+                            
                           ),
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
                               _deleteData(tas['id']);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.image),
+                            onPressed: () {
+                              _openImage(tas['image_path']);
                             },
                           ),
                         ],
@@ -164,6 +173,22 @@ class _DataListPageState extends State<DataListPage> {
         .where((tas) =>
             tas['nama'].toString().toLowerCase().contains(query.toLowerCase()))
         .toList();
+  }
+
+  void _navigateToEditTas(BuildContext context, int tasId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditTasPage(
+          tasId: tasId,
+          onTasUpdated: () {
+          // Callback function to refresh data list
+          _readData();
+        },
+          ),
+        
+      ),
+    );
   }
 
   Future<void> _deleteData(int id) async {
@@ -193,4 +218,17 @@ class _DataListPageState extends State<DataListPage> {
       },
     );
   }
+  void _openImage(String imagePath) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Image.file(
+          File(imagePath),
+          fit: BoxFit.cover,
+        ),
+      );
+    },
+  );
+}
 }

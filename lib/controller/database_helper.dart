@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:path/path.dart';
-// import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
   static DatabaseHelper? _instance;
@@ -83,12 +85,21 @@ class DatabaseHelper {
   Future<int> addTasWithImage(String nama, int harga, int kategoriId, File? image, int stok) async {
   final Database database = await _database.database;
 
-  // Handle the image file as needed (e.g., convert to bytes)
-  // Use the image data in your insert query as required
-  // For example, you can convert the image to bytes using image.readAsBytesSync()
+  String imagePath = '';
 
-  // For simplicity, this example assumes you're saving the image path to the database
-  String imagePath = image?.path ?? '';
+  if (image != null) {
+    // Copy the image to the app's documents directory
+    final Directory appDocDir = await getApplicationDocumentsDirectory();
+    final String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final String newFilePath = '${appDocDir.path}/assets/$uniqueFileName.png';
+
+    try {
+      await image.copy(newFilePath);
+      imagePath = newFilePath;
+    } on FileSystemException catch (e) {
+      print('Error copying image: $e');
+    }
+  }
 
   int tasId = await database.transaction<int>((txn) async {
     int id = await txn.insert(
@@ -159,8 +170,6 @@ class DatabaseHelper {
   return newTasList;
 }
 
-
-  
   Future<List<Map<String, dynamic>>> getDataCategories() async {
     return await _database.query('kategori_tas');
   }
@@ -168,5 +177,56 @@ class DatabaseHelper {
   Future<void> deleteTas(int id) async {
     final Database db = await _database;
     await db.delete('tas', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<Map<String, dynamic>?> getTasById(int tasId) async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> tasList = await db.rawQuery('''
+      SELECT tas.*, COALESCE(stok_tas.stok, 0) AS stok
+      FROM tas
+      LEFT JOIN stok_tas ON tas.id = stok_tas.tas_id
+      WHERE tas.id = ?
+    ''', [tasId]);
+
+    if (tasList.isNotEmpty) {
+      // Fetch kategori_nama for the tas
+      final int kategoriId = tasList[0]['kategori_id'] as int;
+
+      final List<Map<String, dynamic>> kategoriData = await db.query(
+        'kategori_tas',
+        where: 'id = ?',
+        whereArgs: [kategoriId],
+      );
+
+      print('Tas ID: ${tasList[0]['id']}');
+      print('Kategori ID: $kategoriId');
+
+      if (kategoriData.isNotEmpty) {
+        final String kategoriNama = kategoriData[0]['nama'] as String;
+        print('Kategori Nama: $kategoriNama');
+
+        // Create a mutable copy of tas and add 'kategori_nama'
+        Map<String, dynamic> mutableTas = Map.from(tasList[0]);
+        mutableTas['kategori_nama'] = kategoriNama;
+
+        return mutableTas;
+      } else {
+        print('No category data found for ID: $kategoriId');
+      }
+    } else {
+      print('No tas data found for ID: $tasId');
+    }
+
+    return null;
+  }
+  
+  Future<void> updateTas(int tasId, Map<String, dynamic> updatedData) async {
+    await _database.update(
+      'tas',
+      updatedData,
+      where: 'id = ?',
+      whereArgs: [tasId],
+    );
   }
 }

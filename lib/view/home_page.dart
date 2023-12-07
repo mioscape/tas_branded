@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:tas_branded/controller/database_helper.dart';
-import 'data_list_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -42,31 +41,31 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.pushNamed(context, '/add_tas'); // Use
               },
-              child: Text('Tambah Data Tas'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
               ),
+              child: const Text('Tambah Data Tas'),
             ),
-            SizedBox(height: 16.0), // Add a gap of 16 pixels
+            const SizedBox(height: 16.0), // Add a gap of 16 pixels
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/add_kategori'); // Use the route you defined
               },
-              child: Text('Tambah Data Kategori'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
               ),
+              child: const Text('Tambah Data Kategori'),
             ),
-            SizedBox(height: 16.0), // Add a gap of 16 pixels
+            const SizedBox(height: 16.0), // Add a gap of 16 pixels
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/data_list'); // Use the route you defined
                 // _navigateToDataList(context);
               },
-              child: Text('Lihat Data'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
               ),
+              child:const Text('Lihat Data'),
             ),
           ],
         ),
