@@ -108,7 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               Spacer(), // Added spacer to push the version label to the bottom
               Text(
-                'v0.1.0-beta+1238', // Replace with your actual version number
+                'v0.5.3-beta+1835', // Replace with your actual version number
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
