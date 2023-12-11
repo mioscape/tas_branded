@@ -2,10 +2,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:tas_branded/controller/database_helper.dart';
 import 'package:tas_branded/view/edit_tas_page.dart';
+import 'package:intl/intl.dart';
+import 'package:search_page/search_page.dart';
 
 class DataListPage extends StatefulWidget {
+  final String username;
   @override
   _DataListPageState createState() => _DataListPageState();
+
+  DataListPage({required this.username});
 }
 
 class _DataListPageState extends State<DataListPage> {
@@ -23,22 +28,24 @@ class _DataListPageState extends State<DataListPage> {
   }
 
   Future<void> _readData() async {
-  await _databaseHelper.initializeDatabase();
+    await _databaseHelper.initializeDatabase();
 
-  // Fetch data from 'tas' table including 'stok' field
-  final List<Map<String, dynamic>> tasList = await _databaseHelper.getDataTas();
-  print('Tas List: $tasList');
+    // Fetch data from 'tas' table including 'stok' field
+    final List<Map<String, dynamic>> tasList =
+        await _databaseHelper.getDataTas(widget.username);
+    print('Tas List: $tasList');
 
-  setState(() {
-    _originalTasList = List.from(tasList);
-    _tasList = tasList;
-    kategoriData = _groupDataByKategori(_tasList);
-  });
+    setState(() {
+      _originalTasList = List.from(tasList);
+      _tasList = tasList;
+      kategoriData = _groupDataByKategori(_tasList);
+    });
 
-  print('Kategori Data: $kategoriData');
-}
+    print('Kategori Data: $kategoriData');
+  }
 
-  Map<String, List<Map<String, dynamic>>> _groupDataByKategori(List<Map<String, dynamic>> tasList) {
+  Map<String, List<Map<String, dynamic>>> _groupDataByKategori(
+      List<Map<String, dynamic>> tasList) {
     Map<String, List<Map<String, dynamic>>> groupedData = {};
 
     for (var tas in tasList) {
@@ -67,103 +74,138 @@ class _DataListPageState extends State<DataListPage> {
       appBar: AppBar(
         title: Text('Data List'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _tasList = _searchData(value);
-                  kategoriData = _groupDataByKategori(_tasList);
-                });
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            SizedBox(height: 10), // Adjust the height as needed
+            SearchAnchor(
+              builder: (BuildContext context, SearchController controller) {
+                return buildSearchBar(controller);
               },
-              decoration: InputDecoration(
-                labelText: 'Cari Nama Tas',
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _tasList = List.from(_originalTasList);
-                            kategoriData = _groupDataByKategori(_tasList);
-                          });
-                        },
-                      )
-                    : null,
+              suggestionsBuilder:
+                  (BuildContext context, SearchController controller) {
+                return buildSuggestions(controller);
+              },
+            ),
+            SizedBox(height: 10), // Adjust the height as needed
+            Expanded(
+              child: ListView.builder(
+                itemCount: kategoriData.keys.length,
+                itemBuilder: (context, index) {
+                  String kategoriKey = kategoriData.keys.elementAt(index);
+                  List<Map<String, dynamic>> dataKategori =
+                      kategoriData[kategoriKey]!;
+
+                  List<String> parts = kategoriKey.split('-');
+                  int kategoriId = int.parse(parts[0]);
+                  String kategoriNama = parts[1];
+
+                  return ExpansionTile(
+                    title: Text('Kategori $kategoriNama'),
+                    children: dataKategori.map((tas) {
+                      return buildListTile(context, tas);
+                    }).toList(),
+                  );
+                },
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: kategoriData.keys.length,
-              itemBuilder: (context, index) {
-                String kategoriKey = kategoriData.keys.elementAt(index);
-                List<Map<String, dynamic>> dataKategori = kategoriData[kategoriKey]!;
+          ],
+        ),
+      ),
+    );
+  }
 
-                List<String> parts = kategoriKey.split('-');
-                int kategoriId = int.parse(parts[0]);
-                String kategoriNama = parts[1];
-
-                return ExpansionTile(
-                  title: Text('Kategori $kategoriNama'),
-                  children: dataKategori.map((tas) {
-                    return ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: tas['image_path'] != null
-                                ? FileImage(File(tas['image_path']))
-                                : const AssetImage('assets/images/no_image.png') as ImageProvider,
-                          ),
-                        ),
-                      ),
-                      title: Text(tas['nama']),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Harga: ${tas['harga']}'),
-                          Text('Stok: ${tas['stok']}'),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              _navigateToEditTas(this.context, tas['id']);
-                              // TODO: Implement edit functionality
-                            },
-                            
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              _deleteData(tas['id']);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.image),
-                            onPressed: () {
-                              _openImage(tas['image_path']);
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
+  Widget buildSearchBar(SearchController controller) {
+    return SearchBar(
+      controller: controller,
+      hintText: 'Search Tas',
+      padding: const MaterialStatePropertyAll<EdgeInsets>(
+          EdgeInsets.symmetric(horizontal: 16.0)),
+      onTap: () {
+        controller.openView();
+      },
+      onChanged: (_) {
+        controller.openView();
+      },
+      leading: const Icon(Icons.search),
+      trailing: <Widget>[
+        Tooltip(
+          message: 'Change brightness mode',
+          child: IconButton(
+            onPressed: () {}, icon: Icon(null),
+            // Your brightness mode icon here
           ),
-        ],
+        )
+      ],
+    );
+  }
+
+  Iterable<Widget> buildSuggestions(SearchController controller) {
+    final List<Map<String, dynamic>> filteredTasList = _originalTasList
+        .where((tas) => tas['nama']
+            .toString()
+            .toLowerCase()
+            .contains(controller.text.toLowerCase()))
+        .toList();
+
+    return filteredTasList.map((tas) {
+      return buildListTile(context, tas);
+    });
+  }
+
+  Widget buildListTile(BuildContext context, Map<String, dynamic> tas) {
+    return ListTile(
+      leading: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: tas['image_path'] != null
+                ? FileImage(File(tas['image_path']))
+                : const AssetImage('assets/images/no_image.png')
+                    as ImageProvider,
+          ),
+        ),
+      ),
+      title: Text(tas['nama']),
+      subtitle:
+          Text('Harga: ${formatCurrency(tas['harga'])}\nStok: ${tas['stok']}'),
+      trailing: PopupMenuButton<String>(
+        itemBuilder: (BuildContext context) {
+          return {'Edit', 'Delete', 'Open Image'}.map((String choice) {
+            return PopupMenuItem<String>(
+              value: choice,
+              child: Text(choice),
+            );
+          }).toList();
+        },
+        onSelected: (String choice) {
+          switch (choice) {
+            case 'Edit':
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditTasPage(
+                    tasId: tas['id'],
+                    onTasUpdated: () {
+                      // Callback function to refresh data list
+                      _readData();
+                    },
+                  ),
+                ),
+              );
+              break;
+            case 'Delete':
+              _deleteData(tas['id']);
+              break;
+            case 'Open Image':
+              _openImage(tas['image_path']);
+              break;
+          }
+        },
       ),
     );
   }
@@ -182,11 +224,10 @@ class _DataListPageState extends State<DataListPage> {
         builder: (context) => EditTasPage(
           tasId: tasId,
           onTasUpdated: () {
-          // Callback function to refresh data list
-          _readData();
-        },
-          ),
-        
+            // Callback function to refresh data list
+            _readData();
+          },
+        ),
       ),
     );
   }
@@ -218,17 +259,24 @@ class _DataListPageState extends State<DataListPage> {
       },
     );
   }
+
   void _openImage(String imagePath) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: Image.file(
-          File(imagePath),
-          fit: BoxFit.cover,
-        ),
-      );
-    },
-  );
-}
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Image.file(
+            File(imagePath),
+            fit: BoxFit.cover,
+          ),
+        );
+      },
+    );
+  }
+
+  String formatCurrency(int price) {
+    final NumberFormat formatCurrency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return formatCurrency.format(price);
+  }
 }

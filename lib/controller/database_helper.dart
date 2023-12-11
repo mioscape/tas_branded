@@ -36,14 +36,18 @@ class DatabaseHelper {
             nama TEXT,
             harga INTEGER,
             kategori_id INTEGER,
+  			    added_by TEXT,
             image_path TEXT,
-            FOREIGN KEY (kategori_id) REFERENCES kategori_tas(id)
+            FOREIGN KEY (kategori_id) REFERENCES kategori_tas(id),
+            FOREIGN KEY (added_by) REFERENCES users(username)
           )
         ''');
         await db.execute('''
           CREATE TABLE kategori_tas (
             id INTEGER PRIMARY KEY,
-            nama TEXT
+            nama TEXT,
+            added_by TEXT,
+            FOREIGN KEY (added_by) REFERENCES users(username)
           )
         ''');
         await db.execute('''
@@ -52,6 +56,13 @@ class DatabaseHelper {
             tas_id INTEGER,
             stok INTEGER,
             FOREIGN KEY (tas_id) REFERENCES tas(id)
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE users (
+            username TEXT PRIMARY KEY,
+            password TEXT,
+            user_type TEXT
           )
         ''');
       },
@@ -64,114 +75,171 @@ class DatabaseHelper {
   // Existing methods...
 
   // Function to add a new category to the database
-  Future<void> addKategori(String nama) async {
+  Future<void> addKategori(String nama, String username) async {
     final Database database = await _database.database;
     await database.insert(
       'kategori_tas',
-      {'nama': nama},
+      {'nama': nama, 'added_by': username},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  Future<void> addTas(String nama, int harga, int kategoriId) async {
+  Future<void> addTas(
+      String nama, int harga, int kategoriId, String username) async {
     final Database database = await _database.database;
-    await database.insert(
-      'tas',
-      {'nama': nama, 'harga': harga, 'kategori_id': kategoriId},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
+    final user = await DatabaseHelper().getUserData(username);
 
-  Future<int> addTasWithImage(String nama, int harga, int kategoriId, File? image, int stok) async {
-  final Database database = await _database.database;
-
-  String imagePath = '';
-
-  if (image != null) {
-    // Copy the image to the app's documents directory
-    final Directory appDocDir = await getApplicationDocumentsDirectory();
-    final String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
-    final String newFilePath = '${appDocDir.path}/assets/$uniqueFileName.png';
-
-    try {
-      await image.copy(newFilePath);
-      imagePath = newFilePath;
-    } on FileSystemException catch (e) {
-      print('Error copying image: $e');
+    int? userId;
+    if (user != null) {
+      userId = user['id'];
     }
-  }
 
-  int tasId = await database.transaction<int>((txn) async {
-    int id = await txn.insert(
+    await database.insert(
       'tas',
       {
         'nama': nama,
         'harga': harga,
         'kategori_id': kategoriId,
-        'image_path': imagePath,
+        'added_by': userId,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
 
-    await txn.insert(
-      'stok_tas',
-      {'tas_id': id, 'stok': stok},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+  // Update the "getDataByUserType" function
+  Future<List<Map<String, dynamic>>> getDataByUserType(
+      String userType, String username) async {
+    final Database db = await database;
+    final String query;
 
-    return id;
-  });
-
-  return tasId;
-}
-
-
-  Future<List<Map<String, dynamic>>> getDataTas() async {
-  final Database db = await database;
-
-  // Fetch data from 'tas' table including 'stok' field
-  final List<Map<String, dynamic>> tasList = await db.rawQuery('''
-    SELECT tas.*, COALESCE(stok_tas.stok, 0) AS stok
-    FROM tas
-    LEFT JOIN stok_tas ON tas.id = stok_tas.tas_id
-  ''');
-
-  List<Map<String, dynamic>> newTasList = List.from(tasList);
-
-  // Iterate through the tasList and fetch kategori_nama for each item
-  for (var i = 0; i < tasList.length; i++) {
-    final int kategoriId = tasList[i]['kategori_id'] as int;
-
-    // Fetch kategori_nama based on kategori_id
-    final List<Map<String, dynamic>> kategoriData = await db.query(
-      'kategori_tas',
-      where: 'id = ?',
-      whereArgs: [kategoriId],
-    );
-
-    print('Tas ID: ${tasList[i]['id']}');
-    print('Kategori ID: $kategoriId');
-
-    if (kategoriData.isNotEmpty) {
-      final String kategoriNama = kategoriData[0]['nama'] as String;
-      print('Kategori Nama: $kategoriNama');
-
-      // Create a mutable copy of tas and add 'kategori_nama'
-      Map<String, dynamic> mutableTas = Map.from(tasList[i]);
-      mutableTas['kategori_nama'] = kategoriNama;
-
-      // Update the original tas in the new list
-      newTasList[i] = mutableTas;
+    if (userType == 'seller') {
+      query = '''
+        SELECT * FROM tas
+        WHERE added_by = (SELECT id FROM users WHERE username = ?)
+      ''';
     } else {
-      print('No category data found for ID: $kategoriId');
+      query = 'SELECT * FROM tas';
+    }
+
+    final List<Map<String, dynamic>> data =
+        await db.rawQuery(query, [username]);
+
+    return data;
+  }
+
+  // Function to fetch user data by username
+  Future<Map<String, dynamic>?> getUserData(String username) async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> userData = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+    if (userData.isNotEmpty) {
+      return userData.first;
+    } else {
+      return null;
     }
   }
 
-  return newTasList;
-}
+  Future<int> addTasWithImage(String nama, int harga, int kategoriId,
+      File? image, int stok, String username) async {
+    final Database database = await _database.database;
 
-  Future<List<Map<String, dynamic>>> getDataCategories() async {
-    return await _database.query('kategori_tas');
+    String imagePath = '';
+
+    if (image != null) {
+      // Copy the image to the app's documents directory
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String uniqueFileName =
+          DateTime.now().millisecondsSinceEpoch.toString();
+      final String newFilePath = '${appDocDir.path}/assets/$uniqueFileName.png';
+
+      try {
+        await image.copy(newFilePath);
+        imagePath = newFilePath;
+      } on FileSystemException catch (e) {
+        print('Error copying image: $e');
+      }
+    }
+
+    int tasId = await database.transaction<int>((txn) async {
+      int id = await txn.insert(
+        'tas',
+        {
+          'nama': nama,
+          'harga': harga,
+          'kategori_id': kategoriId,
+          'image_path': imagePath,
+          'added_by': username, // Added field with extracted user ID
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      await txn.insert(
+        'stok_tas',
+        {'tas_id': id, 'stok': stok},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      return id;
+    });
+
+    return tasId;
+  }
+
+  Future<List<Map<String, dynamic>>> getDataTas(String username) async {
+    final Database db = await database;
+
+    // Fetch data from 'tas' table including 'stok' field
+    final List<Map<String, dynamic>> tasList = await db.rawQuery('''
+    SELECT tas.*, COALESCE(stok_tas.stok, 0) AS stok
+    FROM tas
+    LEFT JOIN stok_tas ON tas.id = stok_tas.tas_id
+    WHERE added_by = ?
+    ''', [username]);
+
+    List<Map<String, dynamic>> newTasList = List.from(tasList);
+
+    // Iterate through the tasList and fetch kategori_nama for each item
+    for (var i = 0; i < tasList.length; i++) {
+      final int kategoriId = tasList[i]['kategori_id'] as int;
+
+      // Fetch kategori_nama based on kategori_id
+      final List<Map<String, dynamic>> kategoriData = await db.query(
+        'kategori_tas',
+        where: 'id = ?',
+        whereArgs: [kategoriId],
+      );
+
+      print('Tas ID: ${tasList[i]['id']}');
+      print('Kategori ID: $kategoriId');
+
+      if (kategoriData.isNotEmpty) {
+        final String kategoriNama = kategoriData[0]['nama'] as String;
+        print('Kategori Nama: $kategoriNama');
+
+        // Create a mutable copy of tas and add 'kategori_nama'
+        Map<String, dynamic> mutableTas = Map.from(tasList[i]);
+        mutableTas['kategori_nama'] = kategoriNama;
+
+        // Update the original tas in the new list
+        newTasList[i] = mutableTas;
+      } else {
+        print('No category data found for ID: $kategoriId');
+      }
+    }
+
+    return newTasList;
+  }
+
+  Future<List<Map<String, dynamic>>> getDataCategories(String username) async {
+    // Update the query to include "added_by"
+    return await _database.query(
+      'kategori_tas',
+      where: 'added_by = ?',
+      whereArgs: [username],
+    );
   }
 
   Future<void> deleteTas(int id) async {
@@ -220,7 +288,7 @@ class DatabaseHelper {
 
     return null;
   }
-  
+
   Future<void> updateTas(int tasId, Map<String, dynamic> updatedData) async {
     await _database.update(
       'tas',
@@ -228,5 +296,84 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [tasId],
     );
+  }
+
+  Future<void> editTasWithImage(
+      int id, Map<String, dynamic> updatedData, File? newImage) async {
+    final Database database = await _database.database;
+
+    String imagePath = '';
+
+    if (newImage != null) {
+      // Copy the new image to the app's documents directory
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String uniqueFileName =
+          DateTime.now().millisecondsSinceEpoch.toString();
+      final String newFilePath = '${appDocDir.path}/assets/$uniqueFileName.png';
+
+      try {
+        await newImage.copy(newFilePath);
+        imagePath = newFilePath;
+      } on FileSystemException catch (e) {
+        print('Error copying image: $e');
+      }
+    }
+
+    // Update the tas data in the database
+    await database.update(
+      'tas',
+      {
+        ...updatedData,
+        'image_path': imagePath,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<bool> registerUser(
+      String username, String password, String userType) async {
+    final Database database = await _database.database;
+
+    try {
+      await database.insert(
+        'users',
+        {'username': username, 'password': password, 'user_type': userType},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      return true; // Registration successful
+    } catch (e) {
+      print('Error registering user: $e');
+      return false; // Registration failed
+    }
+  }
+
+  // Function to validate login credentials
+  Future<Map<String, dynamic>> validateLogin(
+      String username, String password) async {
+    final Database database = await _database.database;
+
+    final List<Map<String, dynamic>> user = await database.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+
+    if (user.isNotEmpty) {
+      // Return both validation result and user type
+      return {
+        'isValid': true,
+        'userType': user[0]
+            ['user_type'], // Replace 'userType' with the actual column name
+        'userName': user[0]['username'],
+      };
+    } else {
+      // Return validation result and null for user type
+      return {
+        'isValid': false,
+        'userType': null,
+      };
+    }
   }
 }

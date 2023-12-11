@@ -4,9 +4,12 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
 class AddTasPage extends StatefulWidget {
+  final String username;
   final DatabaseHelper databaseHelper;
 
-  const AddTasPage({Key? key, required this.databaseHelper}) : super(key: key);
+  const AddTasPage(
+      {Key? key, required this.databaseHelper, required this.username})
+      : super(key: key);
 
   @override
   _AddTasPageState createState() => _AddTasPageState();
@@ -17,18 +20,28 @@ class _AddTasPageState extends State<AddTasPage> {
   final TextEditingController _hargaController = TextEditingController();
   final TextEditingController _stokController = TextEditingController();
   int? _selectedCategoryId;
-  List<Map<String, dynamic>> _categories = []; // Store the fetched categories
+  List<Map<String, dynamic>> _categories = [];
   File? _selectedImage;
+  bool _isLoading = false;
 
   @override
+  void dispose() {
+    _namaController.dispose();
+    _hargaController.dispose();
+    _stokController.dispose();
+    super.dispose();
+  }
+
   void initState() {
     super.initState();
     _fetchCategories(); // Fetch categories when the widget is initialized
   }
 
   Future<void> _fetchCategories() async {
+    final String username = widget.username;
     // Query the database for categories
-    List<Map<String, dynamic>> categories = await widget.databaseHelper.getDataCategories();
+    List<Map<String, dynamic>> categories =
+        await widget.databaseHelper.getDataCategories(username);
 
     // Update the state with the fetched categories
     setState(() {
@@ -37,24 +50,37 @@ class _AddTasPageState extends State<AddTasPage> {
   }
 
   Future<void> _selectImage() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: FileType.image,
-  );
-
-  if (result != null) {
-    File file = File(result.files.single.path!);
-
     setState(() {
-      _selectedImage = file;
+      _isLoading = true;
     });
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+      );
+
+      if (result != null) {
+        File file = File(result.files.single.path!);
+
+        setState(() {
+          _selectedImage = file;
+        });
+      }
+    } catch (e) {
+      // Handle file picking error
+      print('Error selecting image: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Data Tas'),
+        title: Text('Tambah Tas'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -62,20 +88,35 @@ class _AddTasPageState extends State<AddTasPage> {
           children: [
             TextField(
               controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama Tas'),
+              decoration: InputDecoration(
+                labelText: 'Nama Tas',
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 8.0), // Add gap
             TextField(
               controller: _hargaController,
-              decoration: InputDecoration(labelText: 'Harga'),
+              decoration: InputDecoration(
+                labelText: 'Harga',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 8.0), // Add gap
             TextField(
               controller: _stokController,
-              decoration: InputDecoration(labelText: 'Stok'),
+              decoration: InputDecoration(
+                labelText: 'Stok',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 8.0), // Add gap
             DropdownButtonFormField<int>(
-              decoration: InputDecoration(labelText: 'Kategori'),
+              decoration: InputDecoration(
+                labelText: 'Kategori',
+                border: OutlineInputBorder(),
+              ),
               value: _selectedCategoryId,
               onChanged: (int? newValue) {
                 setState(() {
@@ -119,6 +160,8 @@ class _AddTasPageState extends State<AddTasPage> {
   }
 
   Future<void> _addTas(BuildContext context) async {
+    final String username = widget.username;
+    print(username);
     // Validate data
     if (_namaController.text.trim().isEmpty ||
         _hargaController.text.trim().isEmpty ||
@@ -147,14 +190,19 @@ class _AddTasPageState extends State<AddTasPage> {
 
     // Add data tas to the database
     await widget.databaseHelper.addTasWithImage(
-      _namaController.text.trim(),
-      int.tryParse(_hargaController.text) ?? 0,
-      _selectedCategoryId!,
-      _selectedImage,
-      int.tryParse(_stokController.text) ?? 0,
-    );
+        _namaController.text.trim(),
+        int.tryParse(_hargaController.text) ?? 0,
+        _selectedCategoryId!,
+        _selectedImage,
+        int.tryParse(_stokController.text) ?? 0,
+        username);
 
     // Navigate back to the previous page
-    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tambah Tas berhasil!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:tas_branded/controller/database_helper.dart'; // Import your database helper
 
 class AddKategoriPage extends StatefulWidget {
+  final String username;
+
+  const AddKategoriPage({super.key, required this.username});
   @override
   _AddKategoriPageState createState() => _AddKategoriPageState();
 }
@@ -11,6 +14,7 @@ class _AddKategoriPageState extends State<AddKategoriPage> {
 
   // Function to add a new category
   Future<void> _addKategori() async {
+    final String username = widget.username;
     String nama = _namaController.text.trim();
 
     // Validate data
@@ -37,17 +41,22 @@ class _AddKategoriPageState extends State<AddKategoriPage> {
     }
 
     // Add category to the database
-    await DatabaseHelper().addKategori(nama);
+    await DatabaseHelper().addKategori(nama, username);
 
     // Navigate back to the previous screen (homepage)
-    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tambah Kategori berhasil!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Data Kategori'),
+        title: Text('Tambah Kategori'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -55,7 +64,8 @@ class _AddKategoriPageState extends State<AddKategoriPage> {
           children: [
             TextField(
               controller: _namaController,
-              decoration: InputDecoration(labelText: 'Nama Kategori'),
+              decoration: InputDecoration(
+                  labelText: 'Nama Kategori', border: OutlineInputBorder()),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
