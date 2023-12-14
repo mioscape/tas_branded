@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tas_branded/view/login_page.dart';
+import 'package:bag_branded/view/login_page.dart';
 
 class ProfilePage extends StatelessWidget {
   final String username;
@@ -45,7 +45,7 @@ class ProfilePage extends StatelessWidget {
                       fontSize: 20, fontStyle: FontStyle.normal),
                 ),
                 const SizedBox(height: 32),
-                DarkModeSwitch(),
+                const DarkModeSwitch(),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
@@ -68,13 +68,36 @@ class ProfilePage extends StatelessWidget {
   }
 
   void _logout(BuildContext context) {
-    // Perform logout actions, if any
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Logout"),
+          content: const Text("Are you sure you want to logout?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                // Close the dialog
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Perform logout actions, if any
 
-    // Navigate to the login page and remove all existing routes from the stack
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
-      (Route<dynamic> route) => false, // Remove all existing routes
+                // Navigate to the login page and remove all existing routes from the stack
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (Route<dynamic> route) => false, // Remove all existing routes
+                );
+              },
+              child: const Text("Logout"),
+            ),
+          ],
+        );
+      },
     );
   }
 }

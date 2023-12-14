@@ -1,25 +1,27 @@
 import 'dart:io';
 
+import 'package:bag_branded/models/bag_model.dart';
+import 'package:bag_branded/models/stock_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:tas_branded/controller/database_helper.dart';
+import 'package:bag_branded/services/database_helper.dart';
 
-class EditTasPage extends StatefulWidget {
-  final int tasId;
-  final Function onTasUpdated;
+class EditBagPage extends StatefulWidget {
+  final int bagId;
+  final Function onBagUpdated;
 
-  const EditTasPage({Key? key, required this.tasId, required this.onTasUpdated})
+  const EditBagPage({Key? key, required this.bagId, required this.onBagUpdated})
       : super(key: key);
 
   @override
-  _EditTasPageState createState() => _EditTasPageState();
+  _EditBagPageState createState() => _EditBagPageState();
 }
 
-class _EditTasPageState extends State<EditTasPage> {
+class _EditBagPageState extends State<EditBagPage> {
   late DatabaseHelper _databaseHelper;
-  TextEditingController _namaController = TextEditingController();
-  TextEditingController _hargaController = TextEditingController();
-  TextEditingController _stokController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _stockController = TextEditingController();
   File? _selectedImage;
 
   @override
@@ -30,15 +32,15 @@ class _EditTasPageState extends State<EditTasPage> {
   }
 
   Future<void> _fetchDataForEdit() async {
-    // Fetch the existing data for editing based on widget.tasId
-    Map<String, dynamic>? tasData =
-        await _databaseHelper.getTasById(widget.tasId);
+    // Fetch the existing data for editing based on widget.bagId
+    Map<String, dynamic>? bagData =
+        await _databaseHelper.getBagById(widget.bagId);
 
-    if (tasData != null) {
+    if (bagData != null) {
       // Populate the form fields with the existing data
-      _namaController.text = tasData['nama'];
-      _hargaController.text = tasData['harga'].toString();
-      _stokController.text = tasData['stok'].toString();
+      _nameController.text = bagData['name'];
+      _priceController.text = bagData['price'].toString();
+      _stockController.text = bagData['stock'].toString();
     }
   }
 
@@ -60,46 +62,46 @@ class _EditTasPageState extends State<EditTasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Data Tas'),
+        title: Text('Edit Bag Data'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: _namaController,
+              controller: _nameController,
               decoration: InputDecoration(
-                  labelText: 'Nama Tas', border: OutlineInputBorder()),
+                  labelText: 'Bag name', border: OutlineInputBorder()),
             ),
             SizedBox(height: 8.0), // Add gap
             TextField(
-              controller: _hargaController,
+              controller: _priceController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                  labelText: 'Harga', border: OutlineInputBorder()),
+                  labelText: 'Price', border: OutlineInputBorder()),
             ),
             SizedBox(height: 8.0), // Add gap
             TextField(
-              controller: _stokController,
+              controller: _stockController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                  labelText: 'Stok', border: OutlineInputBorder()),
+                  labelText: 'Stock', border: OutlineInputBorder()),
             ),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 _selectImage();
               },
-              child: Text('Pilih Gambar'),
+              child: Text('Choose Image'),
             ),
             if (_selectedImage != null)
               Image.file(_selectedImage!, height: 100),
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                _updateTasData();
+                _updateBagData();
               },
-              child: Text('Simpan Perubahan'),
+              child: Text('Save Changes'),
             ),
           ],
         ),
@@ -107,11 +109,13 @@ class _EditTasPageState extends State<EditTasPage> {
     );
   }
 
-  Future<void> _updateTasData() async {
+  Future<void> _updateBagData() async {
+    Map<String, dynamic>? bagData =
+        await _databaseHelper.getBagById(widget.bagId);
     // Validate data
-    if (_namaController.text.trim().isEmpty ||
-        _hargaController.text.trim().isEmpty ||
-        _stokController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _priceController.text.trim().isEmpty ||
+        _stockController.text.trim().isEmpty) {
       // Show an error message or handle the validation error as needed
       showDialog(
         context: context,
@@ -133,17 +137,27 @@ class _EditTasPageState extends State<EditTasPage> {
       return;
     }
 
-    // Get the updated values
-    String nama = _namaController.text.trim();
-    int harga = int.tryParse(_hargaController.text) ?? 0;
-    int stok = int.tryParse(_stokController.text) ?? 0;
+    Bag bag = Bag(
+      id: widget.bagId,
+      name: _nameController.text.trim(),
+      price: int.tryParse(_priceController.text) ?? 0,
+      imagePath: _selectedImage?.path ?? bagData?['image_path'],
+      categoryId: 0,
+      addedBy: '',
+    );
+
+    Stock stock = Stock(
+      id: 0,
+      bagId: widget.bagId,
+      stock: int.tryParse(_stockController.text) ?? 0,
+      categoryId: 0,
+    );
 
     // Update the data in the database
-    await _databaseHelper.editTasWithImage(widget.tasId,
-        {'nama': nama, 'harga': harga, 'stok': stok}, _selectedImage);
+    await _databaseHelper.editBagWithImage(bag, stock);
 
     // Notify the parent widget about the update
-    widget.onTasUpdated();
+    widget.onBagUpdated();
 
     // Navigate back to the previous page
     Navigator.pop(context);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tas_branded/controller/database_helper.dart';
+import 'package:bag_branded/models/users_model.dart';
+import 'package:bag_branded/services/database_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register'),
+        title: const Text('Register'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -26,17 +27,17 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Tas Branded App',
+              const Text(
+                'Bag Branded App',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _usernameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Username',
                   border: OutlineInputBorder(),
                 ),
@@ -47,10 +48,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
                 ),
@@ -62,10 +63,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _confirmPasswordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Confirm Password',
                   border: OutlineInputBorder(),
                 ),
@@ -79,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               DropdownButton<String>(
                 value: _selectedUserType,
                 onChanged: (String? newValue) {
@@ -97,18 +98,18 @@ class _RegisterPageState extends State<RegisterPage> {
                   );
                 }).toList(),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _register(context);
                   }
                 },
-                child: Text('Register'),
+                child: const Text('Register'),
               ),
-              Spacer(), // Added spacer to push the version label to the bottom
-              Text(
-                'v0.5.3-beta+1835', // Replace with your actual version number
+              const Spacer(), // Added spacer to push the version label to the bottom
+              const Text(
+                'v0.8.7-beta+2323', // Replace with your actual version number
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -122,46 +123,50 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register(BuildContext context) async {
-    // Perform user registration
-    bool registrationSuccess = await DatabaseHelper().registerUser(
-      _usernameController.text,
-      _passwordController.text,
-      _selectedUserType,
+    Users users = Users(
+      username: _usernameController.text,
+      password: _passwordController.text,
+      userType: _selectedUserType,
     );
 
+    // Perform user registration
+    bool registrationSuccess = await DatabaseHelper().registerUser(users);
+
     if (registrationSuccess) {
+      // ignore: use_build_context_synchronously
       await showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Registration Success'),
-            content: Text('Press OK to Login'),
+            title: const Text('Registration Success'),
+            content: const Text('Press OK to Login'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
         },
       );
+      // ignore: use_build_context_synchronously
       Navigator.pop(context); // Close the registration page
     } else {
-      // Show an error message for invalid registration
+      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Registration Failed'),
-            content: Text('Invalid username or password.'),
+            title: const Text('Registration Failed'),
+            content: const Text('Invalid username or password.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );

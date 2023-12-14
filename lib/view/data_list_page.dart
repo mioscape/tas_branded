@@ -1,24 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:tas_branded/controller/database_helper.dart';
-import 'package:tas_branded/view/edit_tas_page.dart';
+import 'package:bag_branded/services/database_helper.dart';
+import 'package:bag_branded/view/bag/edit_page.dart';
 import 'package:intl/intl.dart';
-import 'package:search_page/search_page.dart';
 
 class DataListPage extends StatefulWidget {
   final String username;
+  final String password;
   @override
   _DataListPageState createState() => _DataListPageState();
 
-  DataListPage({required this.username});
+  const DataListPage(
+      {super.key, required this.username, required this.password});
 }
 
 class _DataListPageState extends State<DataListPage> {
   late DatabaseHelper _databaseHelper;
-  List<Map<String, dynamic>> _originalTasList = [];
-  List<Map<String, dynamic>> _tasList = [];
-  Map<String, List<Map<String, dynamic>>> kategoriData = {};
-  TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _originalBagList = [];
+  List<Map<String, dynamic>> _bagList = [];
+  Map<String, List<Map<String, dynamic>>> categoryData = {};
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -30,38 +31,38 @@ class _DataListPageState extends State<DataListPage> {
   Future<void> _readData() async {
     await _databaseHelper.initializeDatabase();
 
-    // Fetch data from 'tas' table including 'stok' field
-    final List<Map<String, dynamic>> tasList =
-        await _databaseHelper.getDataTas(widget.username);
-    print('Tas List: $tasList');
+    // Fetch data from 'bag' table including 'stock' field
+    final List<Map<String, dynamic>> bagList =
+        await _databaseHelper.getDataBag(widget.username);
+    print('Bag List: $bagList');
 
     setState(() {
-      _originalTasList = List.from(tasList);
-      _tasList = tasList;
-      kategoriData = _groupDataByKategori(_tasList);
+      _originalBagList = List.from(bagList);
+      _bagList = bagList;
+      categoryData = _groupDataByCategory(_bagList);
     });
 
-    print('Kategori Data: $kategoriData');
+    print('Category Data: $categoryData');
   }
 
-  Map<String, List<Map<String, dynamic>>> _groupDataByKategori(
-      List<Map<String, dynamic>> tasList) {
+  Map<String, List<Map<String, dynamic>>> _groupDataByCategory(
+      List<Map<String, dynamic>> bagList) {
     Map<String, List<Map<String, dynamic>>> groupedData = {};
 
-    for (var tas in tasList) {
-      var kategoriId = tas['kategori_id'] as int?;
-      var kategoriNama = tas['kategori_nama'] as String?;
+    for (var bag in bagList) {
+      var categoryId = bag['category_id'] as int?;
+      var categoryName = bag['category_name'] as String?;
 
-      print('Kategori ID: $kategoriId, Kategori Nama: $kategoriNama');
+      print('Category ID: $categoryId, Category Name: $categoryName');
 
-      if (kategoriId != null && kategoriNama != null) {
-        var kategoriKey = '$kategoriId-$kategoriNama';
+      if (categoryId != null && categoryName != null) {
+        var categoryKey = '$categoryId-$categoryName';
 
-        if (!groupedData.containsKey(kategoriKey)) {
-          groupedData[kategoriKey] = [];
+        if (!groupedData.containsKey(categoryKey)) {
+          groupedData[categoryKey] = [];
         }
 
-        groupedData[kategoriKey]!.add(tas);
+        groupedData[categoryKey]!.add(bag);
       }
     }
 
@@ -72,13 +73,13 @@ class _DataListPageState extends State<DataListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Data List'),
+        title: const Text('List Data'),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            SizedBox(height: 10), // Adjust the height as needed
+            const SizedBox(height: 10), // Adjust the height as needed
             SearchAnchor(
               builder: (BuildContext context, SearchController controller) {
                 return buildSearchBar(controller);
@@ -88,24 +89,37 @@ class _DataListPageState extends State<DataListPage> {
                 return buildSuggestions(controller);
               },
             ),
-            SizedBox(height: 10), // Adjust the height as needed
+            const SizedBox(height: 10), // Adjust the height as needed
             Expanded(
               child: ListView.builder(
-                itemCount: kategoriData.keys.length,
+                itemCount: categoryData.keys.length,
                 itemBuilder: (context, index) {
-                  String kategoriKey = kategoriData.keys.elementAt(index);
-                  List<Map<String, dynamic>> dataKategori =
-                      kategoriData[kategoriKey]!;
+                  String categoryKey = categoryData.keys.elementAt(index);
+                  List<Map<String, dynamic>> dataCategory =
+                      categoryData[categoryKey]!;
 
-                  List<String> parts = kategoriKey.split('-');
-                  int kategoriId = int.parse(parts[0]);
-                  String kategoriNama = parts[1];
+                  List<String> parts = categoryKey.split('-');
+                  int categoryId = int.parse(parts[0]);
+                  String categoryName = parts[1];
 
                   return ExpansionTile(
-                    title: Text('Kategori $kategoriNama'),
-                    children: dataKategori.map((tas) {
-                      return buildListTile(context, tas);
-                    }).toList(),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Category $categoryName'),
+                        IconButton(
+                          icon: const Icon(Icons.delete_forever_outlined),
+                          onPressed: () {
+                            _deleteCategoryButtonPressed(categoryId);
+                          },
+                        ),
+                      ],
+                    ),
+                    children: [
+                      ...dataCategory.map((bag) {
+                        return buildListTile(context, bag);
+                      }),
+                    ],
                   );
                 },
               ),
@@ -119,7 +133,7 @@ class _DataListPageState extends State<DataListPage> {
   Widget buildSearchBar(SearchController controller) {
     return SearchBar(
       controller: controller,
-      hintText: 'Search Tas',
+      hintText: 'Search Bags',
       padding: const MaterialStatePropertyAll<EdgeInsets>(
           EdgeInsets.symmetric(horizontal: 16.0)),
       onTap: () {
@@ -129,32 +143,23 @@ class _DataListPageState extends State<DataListPage> {
         controller.openView();
       },
       leading: const Icon(Icons.search),
-      trailing: <Widget>[
-        Tooltip(
-          message: 'Change brightness mode',
-          child: IconButton(
-            onPressed: () {}, icon: Icon(null),
-            // Your brightness mode icon here
-          ),
-        )
-      ],
     );
   }
 
   Iterable<Widget> buildSuggestions(SearchController controller) {
-    final List<Map<String, dynamic>> filteredTasList = _originalTasList
-        .where((tas) => tas['nama']
+    final List<Map<String, dynamic>> filteredBagList = _originalBagList
+        .where((bag) => bag['name']
             .toString()
             .toLowerCase()
             .contains(controller.text.toLowerCase()))
         .toList();
 
-    return filteredTasList.map((tas) {
-      return buildListTile(context, tas);
+    return filteredBagList.map((bag) {
+      return buildListTile(context, bag);
     });
   }
 
-  Widget buildListTile(BuildContext context, Map<String, dynamic> tas) {
+  Widget buildListTile(BuildContext context, Map<String, dynamic> bag) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -163,16 +168,16 @@ class _DataListPageState extends State<DataListPage> {
           shape: BoxShape.circle,
           image: DecorationImage(
             fit: BoxFit.cover,
-            image: tas['image_path'] != null
-                ? FileImage(File(tas['image_path']))
+            image: bag['image_path'] != null
+                ? FileImage(File(bag['image_path']))
                 : const AssetImage('assets/images/no_image.png')
                     as ImageProvider,
           ),
         ),
       ),
-      title: Text(tas['nama']),
-      subtitle:
-          Text('Harga: ${formatCurrency(tas['harga'])}\nStok: ${tas['stok']}'),
+      title: Text(bag['name']),
+      subtitle: Text(
+          'Price: ${formatCurrency(bag['price'])}\nStock: ${bag['stock']}'),
       trailing: PopupMenuButton<String>(
         itemBuilder: (BuildContext context) {
           return {'Edit', 'Delete', 'Open Image'}.map((String choice) {
@@ -188,9 +193,9 @@ class _DataListPageState extends State<DataListPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EditTasPage(
-                    tasId: tas['id'],
-                    onTasUpdated: () {
+                  builder: (context) => EditBagPage(
+                    bagId: bag['id'],
+                    onBagUpdated: () {
                       // Callback function to refresh data list
                       _readData();
                     },
@@ -199,10 +204,10 @@ class _DataListPageState extends State<DataListPage> {
               );
               break;
             case 'Delete':
-              _deleteData(tas['id']);
+              _deleteData(bag['id']);
               break;
             case 'Open Image':
-              _openImage(tas['image_path']);
+              _openImage(bag['image_path']);
               break;
           }
         },
@@ -210,20 +215,149 @@ class _DataListPageState extends State<DataListPage> {
     );
   }
 
+  void _deleteCategoryButtonPressed(categoryId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Category Confirmation'),
+          content: const Text(
+              'Are you sure you want to delete this category and all associated bags?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                _deleteCategoryPassword(categoryId);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.red, // Use red color for the delete button
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteCategoryPassword(int categoryId) {
+    final password = widget.password;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Password to Delete Category'),
+          // titlePadding: const EdgeInsets.all(8.0), // Adjust title padding
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_passwordController.text == password) {
+                  await _deleteCategory(categoryId);
+                  await _readData();
+                  _passwordController.clear();
+                  Navigator.of(context).pop();
+                } else {
+                  _showErrorDialog(context, 'Incorrect password');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteCategory(int categoryId) async {
+    try {
+      await _databaseHelper.deleteCategory(categoryId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Category deleted successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error deleting category: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error deleting category'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   List<Map<String, dynamic>> _searchData(String query) {
-    return _originalTasList
-        .where((tas) =>
-            tas['nama'].toString().toLowerCase().contains(query.toLowerCase()))
+    return _originalBagList
+        .where((bag) =>
+            bag['name'].toString().toLowerCase().contains(query.toLowerCase()))
         .toList();
   }
 
-  void _navigateToEditTas(BuildContext context, int tasId) {
+  void _navigateToEditBag(BuildContext context, int bagId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditTasPage(
-          tasId: tasId,
-          onTasUpdated: () {
+        builder: (context) => EditBagPage(
+          bagId: bagId,
+          onBagUpdated: () {
             // Callback function to refresh data list
             _readData();
           },
@@ -237,22 +371,25 @@ class _DataListPageState extends State<DataListPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Konfirmasi Hapus Data'),
-          content: Text('Apakah Anda yakin ingin menghapus data ini?'),
+          title: const Text('Delete Data Confirmation'),
+          content: const Text('Are you sure you want to delete this data?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Batal'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.red),
+              ),
               onPressed: () async {
-                await _databaseHelper.deleteTas(id);
+                await _databaseHelper.deleteBag(id);
                 _readData();
                 Navigator.of(context).pop();
               },
-              child: Text('Hapus'),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -265,9 +402,15 @@ class _DataListPageState extends State<DataListPage> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          child: Image.file(
-            File(imagePath),
-            fit: BoxFit.cover,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30.0),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
         );
       },

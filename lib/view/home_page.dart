@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:tas_branded/controller/database_helper.dart';
-import 'package:tas_branded/view/add_kategori_page.dart';
-import 'package:tas_branded/view/add_tas_page.dart';
-import 'package:tas_branded/view/data_list_page.dart';
-import 'package:tas_branded/view/login_page.dart';
-import 'package:tas_branded/view/profile_page.dart';
-import 'package:tas_branded/view/register_page.dart';
+import 'package:bag_branded/services/database_helper.dart';
+import 'package:bag_branded/view/add_data_page.dart';
+import 'package:bag_branded/view/data_list_page.dart';
+import 'package:bag_branded/view/profile_page.dart';
+import 'package:bag_branded/view/shop_page.dart';
 
 class HomePage extends StatefulWidget {
   final String? userName;
   final String? userType;
+  final String? password;
 
-  HomePage({this.userName, this.userType});
+  const HomePage({super.key, this.userName, this.userType, this.password});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -20,7 +18,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late DatabaseHelper _databaseHelper;
-  List<Map<String, dynamic>> _tasList = [];
   int _currentIndex = 0;
 
   @override
@@ -31,25 +28,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _readData() async {
-    final Database database = await _databaseHelper.database;
-    final List<Map<String, dynamic>> tasList = await database.query('tas');
-
-    setState(() {
-      _tasList = tasList;
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar: AppBar(
-      //   title: Text('Toko Tas Branded'),
+      //   title: Text('Toko Bag Branded'),
       // ),
       body: Center(
         child: _getBody(),
       ),
       bottomNavigationBar: NavigationBar(
-        // type: BottomNavigationBarType.fixed,
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           setState(() {
@@ -59,29 +50,25 @@ class _HomePageState extends State<HomePage> {
         destinations: [
           ...(widget.userType == 'seller'
               ? [
-                  NavigationDestination(
+                  const NavigationDestination(
                     icon: Icon(Icons.account_circle),
                     label: 'Profile',
                   ),
-                  NavigationDestination(
+                  const NavigationDestination(
                     icon: Icon(Icons.add),
-                    label: 'Tambah Tas',
+                    label: 'Add Data',
                   ),
-                  NavigationDestination(
-                    icon: Icon(Icons.add),
-                    label: 'Tambah Kategori',
-                  ),
-                  NavigationDestination(
+                  const NavigationDestination(
                     icon: Icon(Icons.list),
-                    label: 'Lihat Data',
+                    label: 'List Data',
                   ),
                 ]
               : [
-                  NavigationDestination(
+                  const NavigationDestination(
                     icon: Icon(Icons.shopping_cart),
                     label: 'Shop',
                   ),
-                  NavigationDestination(
+                  const NavigationDestination(
                     icon: Icon(Icons.account_circle),
                     label: 'Profile',
                   ),
@@ -97,10 +84,8 @@ class _HomePageState extends State<HomePage> {
         case 0:
           return _buildProfil();
         case 1:
-          return _buildTambahDataTas();
+          return _buildAddData();
         case 2:
-          return _buildTambahDataKategori();
-        case 3:
           return _buildLihatData();
         default:
           return Container();
@@ -108,7 +93,7 @@ class _HomePageState extends State<HomePage> {
     } else {
       switch (_currentIndex) {
         case 0:
-          return _buildProfil();
+          return _buildShop();
         case 1:
           return _buildProfil();
         default:
@@ -117,20 +102,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildTambahDataTas() {
-    return AddTasPage(
-        databaseHelper: _databaseHelper, username: widget.userName!);
-  }
-
-  Widget _buildTambahDataKategori() {
-    return AddKategoriPage(username: widget.userName!);
+  Widget _buildAddData() {
+    return TabbedPage(
+        username: widget.userName!, databaseHelper: _databaseHelper);
   }
 
   Widget _buildLihatData() {
-    return DataListPage(username: widget.userName!);
+    return DataListPage(username: widget.userName!, password: widget.password!);
   }
 
   Widget _buildProfil() {
     return ProfilePage(username: widget.userName!, userType: widget.userType!);
+  }
+
+  Widget _buildShop() {
+    return ShopPage();
   }
 }

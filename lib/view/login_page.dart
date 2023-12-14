@@ -1,61 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:tas_branded/controller/database_helper.dart';
-import 'package:tas_branded/view/home_page.dart';
-import 'package:tas_branded/view/register_page.dart';
+import 'package:bag_branded/services/database_helper.dart';
+import 'package:bag_branded/view/home_page.dart';
+import 'package:bag_branded/view/register_page.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String? _selectedUserType;
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Tas Branded App',
+            const Text(
+              'Bag Branded App',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: _usernameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Username',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Password',
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 _login(context);
               },
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             TextButton(
               onPressed: () {
                 // Navigate to the register page
@@ -64,11 +65,11 @@ class _LoginPageState extends State<LoginPage> {
                   MaterialPageRoute(builder: (context) => RegisterPage()),
                 );
               },
-              child: Text('Register'),
+              child: const Text('Register'),
             ),
-            Spacer(), // Added spacer to push the version label to the bottom
-            Text(
-              'v0.5.3-beta+1835', // Replace with your actual version number
+            const Spacer(), // Added spacer to push the version label to the bottom
+            const Text(
+              'v0.8.7-beta+2323', // Replace with your actual version number
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,
@@ -89,30 +90,34 @@ class _LoginPageState extends State<LoginPage> {
 
     bool isValidLogin = validationResult['isValid'];
     String? userType = validationResult['userType'];
-    String? userName = validationResult['userName'];
+    String? userName = validationResult['username'];
+    String? password = validationResult['password'];
 
     if (isValidLogin) {
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              HomePage(userName: userName!, userType: userType!),
+          builder: (context) => HomePage(
+            userName: userName!,
+            userType: userType!,
+            password: password!,
+          ),
         ),
       );
     } else {
-      // Show an error message for invalid login
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Invalid Login'),
-            content: Text('Invalid username or password.'),
+            title: const Text('Invalid Login'),
+            content: const Text('Invalid username or password.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
