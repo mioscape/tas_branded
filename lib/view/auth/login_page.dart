@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
-import 'package:bag_branded/view/home_page.dart';
-import 'package:bag_branded/view/register_page.dart';
+import 'package:bag_branded/view/shared/home_page.dart';
+import 'package:bag_branded/view/auth/register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const Spacer(), // Added spacer to push the version label to the bottom
             const Text(
-              'v0.8.7-beta+2323', // Replace with your actual version number
+              'v0.9.3-beta+2333', // Replace with your actual version number
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,

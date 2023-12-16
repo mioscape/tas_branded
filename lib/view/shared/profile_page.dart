@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bag_branded/view/login_page.dart';
+import 'package:bag_branded/view/auth/login_page.dart';
 
 class ProfilePage extends StatelessWidget {
   final String username;

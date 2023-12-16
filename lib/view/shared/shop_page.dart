@@ -133,13 +133,13 @@ class _ShopPageState extends State<ShopPage> {
                         alignment: Alignment.center,
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            fixedSize: const Size(168, 0),
+                            fixedSize: const Size(168, 48),
                           ),
                           onPressed: () {
                             _buyBag(bag['id']);
                           },
                           child: const Text(
-                            'Buy',
+                            'Add to Cart',
                             style: TextStyle(
                               fontSize: 16.0,
                             ),
@@ -162,7 +162,20 @@ class _ShopPageState extends State<ShopPage> {
   }
 
   void _buyBag(int bagId) async {
-    _readData();
+    // Check if the bag is already in the cart
+    final isInCart = await _databaseHelper.isBagInCart(bagId, widget.username!);
+
+    if (isInCart) {
+      // Show a message or handle the case where the bag is already in the cart
+      print('Bag is already in the cart.');
+    } else {
+      // Add the bag to the cart
+      await _databaseHelper.addToCart(bagId, 1, widget.username!);
+      print('Bag added to the cart.');
+
+      // Refresh the data to update the UI
+      _readData();
+    }
   }
 
   String formatCurrency(int price) {
@@ -334,7 +347,8 @@ class _ShopPageState extends State<ShopPage> {
                       scrollDirection: Axis.horizontal,
                       itemCount: _originalBagList.length,
                       itemBuilder: (context, index) {
-                        Map<String, dynamic> bag = _originalBagList[index];
+                        Map<String, dynamic> bag = _originalBagList[
+                            _originalBagList.length - index - 1];
                         return buildCard(context, bag, bag['category_name']);
                       },
                     )

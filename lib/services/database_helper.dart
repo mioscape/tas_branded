@@ -1,7 +1,7 @@
-import 'dart:io';
+// import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart';
 import 'package:bag_branded/models/category_model.dart';
 import 'package:bag_branded/models/stock_model.dart';
 import 'package:bag_branded/models/bag_model.dart';
@@ -15,6 +15,7 @@ class DatabaseHelper {
   static const String categoryBagTable = 'category_bag';
   static const String stockBagTable = 'stock_bag';
   static const String usersTable = 'users';
+  static const String cartTable = 'cart';
 
   // idColumn is used in all tables
   static const String idColumn = 'id';
@@ -40,6 +41,10 @@ class DatabaseHelper {
   static const String passwordColumn = 'password';
   static const String userTypeColumn = 'user_type';
 
+  // cartTable columns
+  static const String quantityColumn = 'quantity';
+  static const String statusColumn = 'status';
+
   factory DatabaseHelper() {
     _instance ??= DatabaseHelper._();
     return _instance!;
@@ -57,7 +62,7 @@ class DatabaseHelper {
 
   Future<Database> initializeDatabase() async {
     _database = await openDatabase(
-      join(await getDatabasesPath(), 'bag_branded_dev_v4.db'),
+      join(await getDatabasesPath(), 'bag_branded_dev.db'),
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE bag (
@@ -96,8 +101,19 @@ class DatabaseHelper {
             user_type TEXT
           )
         ''');
+        await db.execute('''
+          CREATE TABLE cart (
+            id INTEGER PRIMARY KEY,
+            bag_id INTEGER,
+            quantity INTEGER,
+            username TEXT,
+            status TEXT,
+            FOREIGN KEY (bag_id) REFERENCES bag(id)
+            FOREIGN KEY (username) REFERENCES users(username)
+          )
+        ''');
       },
-      version: 4,
+      version: 1,
     );
 
     return _database;
@@ -395,6 +411,155 @@ class DatabaseHelper {
     } catch (e) {
       print('Error deleting category: $e');
       rethrow; // Re-throw the exception after logging
+    }
+  }
+
+  Future<void> removeFromCart(int id) async {
+    final Database db = await database;
+
+    try {
+      // Begin the database transaction
+      await db.transaction((txn) async {
+        // Delete bags associated with the category
+        await txn.delete(
+          'cart',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      });
+    } catch (e) {
+      print('Error deleting cart: $e');
+      rethrow; // Re-throw the exception after logging
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getCartItems(
+      String username, String status) async {
+    final Database db = await initializeDatabase();
+
+    final List<Map<String, dynamic>> cartItems = await db.rawQuery(
+      'SELECT * FROM $cartTable WHERE username = ? AND status = ?',
+      [username, status],
+    );
+
+    // Fetch additional details for each item in the cart
+    final List<Map<String, dynamic>> completeCartItems = [];
+    for (final cartItem in cartItems) {
+      final bagDetails = await getBagDetails(cartItem['bag_id']);
+      if (bagDetails != null) {
+        completeCartItems.add({
+          ...cartItem,
+          'id': cartItem['id'],
+          'name': bagDetails['name'],
+          'image_path': bagDetails['image_path'],
+          'stock': bagDetails['stock'],
+        });
+      }
+    }
+
+    return completeCartItems;
+  }
+
+  Future<Map<String, dynamic>?> getBagDetails(int bagId) async {
+    final Database db = await initializeDatabase();
+
+    final List<Map<String, dynamic>> bagDetails = await db.rawQuery('''
+    SELECT bag.*, COALESCE(stock_bag.stock, 0) AS stock
+    FROM $bagTable
+    LEFT JOIN $stockBagTable ON $bagTable.id = $stockBagTable.bag_id
+    WHERE $bagTable.id = ?
+    LIMIT 1
+    ''', [bagId]);
+
+    return bagDetails.isNotEmpty ? bagDetails.first : null;
+  }
+
+  Future<bool> isBagInCart(int bagId, String username) async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      cartTable,
+      where: 'bag_id = ? AND username = ?',
+      whereArgs: [bagId, username],
+    );
+
+    return result.isNotEmpty;
+  }
+
+  Future<void> addToCart(int bagId, int quantity, String username) async {
+    final Database db = await database;
+
+    // Check if the bag is already in the cart
+    final bool isInCart = await isBagInCart(bagId, username);
+
+    if (isInCart) {
+      // If the bag is already in the cart, update the quantity
+      await db.update(
+        cartTable,
+        {'quantity': quantity},
+        where: 'bag_id = ? AND username = ?',
+        whereArgs: [bagId, username],
+      );
+    } else {
+      // If the bag is not in the cart, add it
+      await db.insert(
+        cartTable,
+        {
+          'bag_id': bagId,
+          'quantity': quantity,
+          'username': username,
+          'status': 'pending', // You can set the initial status as needed
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
+  Future<void> updateCartItemQuantity(int id, int newQuantity) async {
+    final Database db = await database;
+
+    // Check if the bag is in the cart
+    final List<Map<String, dynamic>> result = await db.query(
+      cartTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      // Bag is in the cart, update the quantity
+      await db.update(
+        cartTable,
+        {'quantity': newQuantity},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } else {
+      // Bag not found in the cart (this should not happen, handle accordingly)
+      print('Error: Bag not found in the cart.');
+    }
+  }
+
+  Future<void> checkoutCart(String username) async {
+    final Database db = await database;
+
+    // Check if the bag is in the cart
+    final List<Map<String, dynamic>> result = await db.query(
+      cartTable,
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+
+    if (result.isNotEmpty) {
+      // Bag is in the cart, update the quantity
+      await db.update(
+        cartTable,
+        {'status': 'done'},
+        where: 'username = ?',
+        whereArgs: [username],
+      );
+    } else {
+      // Bag not found in the cart (this should not happen, handle accordingly)
+      print('Error: Bag not found in the cart.');
     }
   }
 }

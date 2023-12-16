@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bag_branded/services/database_helper.dart';
-import 'package:bag_branded/view/login_page.dart';
-import 'package:bag_branded/view/profile_page.dart';
+import 'package:bag_branded/view/auth/login_page.dart';
+import 'package:bag_branded/view/shared/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,9 +1,10 @@
+import 'package:bag_branded/view/shared/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
-import 'package:bag_branded/view/add_data_page.dart';
-import 'package:bag_branded/view/data_list_page.dart';
-import 'package:bag_branded/view/profile_page.dart';
-import 'package:bag_branded/view/shop_page.dart';
+import 'package:bag_branded/view/shared/add_data_page.dart';
+import 'package:bag_branded/view/bag/data_list_page.dart';
+import 'package:bag_branded/view/shared/profile_page.dart';
+import 'package:bag_branded/view/shared/shop_page.dart';
 
 class HomePage extends StatefulWidget {
   final String? userName;
@@ -51,25 +52,29 @@ class _HomePageState extends State<HomePage> {
           ...(widget.userType == 'seller'
               ? [
                   const NavigationDestination(
-                    icon: Icon(Icons.account_circle),
+                    icon: Icon(Icons.account_circle_outlined),
                     label: 'Profile',
                   ),
                   const NavigationDestination(
-                    icon: Icon(Icons.add),
+                    icon: Icon(Icons.add_outlined),
                     label: 'Add Data',
                   ),
                   const NavigationDestination(
-                    icon: Icon(Icons.list),
+                    icon: Icon(Icons.list_outlined),
                     label: 'List Data',
                   ),
                 ]
               : [
                   const NavigationDestination(
-                    icon: Icon(Icons.shopping_cart),
+                    icon: Icon(Icons.shopping_cart_outlined),
                     label: 'Shop',
                   ),
                   const NavigationDestination(
-                    icon: Icon(Icons.account_circle),
+                    icon: Icon(Icons.shopping_basket_outlined),
+                    label: 'Cart',
+                  ),
+                  const NavigationDestination(
+                    icon: Icon(Icons.account_circle_outlined),
                     label: 'Profile',
                   ),
                 ]),
@@ -95,6 +100,8 @@ class _HomePageState extends State<HomePage> {
         case 0:
           return _buildShop();
         case 1:
+          return _buildCart();
+        case 2:
           return _buildProfil();
         default:
           return Container();
@@ -116,6 +123,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildShop() {
-    return ShopPage();
+    return ShopPage(
+      username: widget.userName!,
+    );
+  }
+
+  Widget _buildCart() {
+    return CartPage(
+      username: widget.userName!,
+    );
   }
 }

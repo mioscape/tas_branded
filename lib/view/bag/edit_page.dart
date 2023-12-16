@@ -62,7 +62,7 @@ class _EditBagPageState extends State<EditBagPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Bag Data'),
+        title: const Text('Edit Bag Data'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -70,38 +70,38 @@ class _EditBagPageState extends State<EditBagPage> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   labelText: 'Bag name', border: OutlineInputBorder()),
             ),
-            SizedBox(height: 8.0), // Add gap
+            const SizedBox(height: 8.0), // Add gap
             TextField(
               controller: _priceController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   labelText: 'Price', border: OutlineInputBorder()),
             ),
-            SizedBox(height: 8.0), // Add gap
+            const SizedBox(height: 8.0), // Add gap
             TextField(
               controller: _stockController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   labelText: 'Stock', border: OutlineInputBorder()),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 _selectImage();
               },
-              child: Text('Choose Image'),
+              child: const Text('Choose Image'),
             ),
             if (_selectedImage != null)
               Image.file(_selectedImage!, height: 100),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 _updateBagData();
               },
-              child: Text('Save Changes'),
+              child: const Text('Save Changes'),
             ),
           ],
         ),
@@ -121,14 +121,14 @@ class _EditBagPageState extends State<EditBagPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('Please fill in all fields.'),
+            title: const Text('Error'),
+            content: const Text('Please fill in all fields.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -161,5 +161,12 @@ class _EditBagPageState extends State<EditBagPage> {
 
     // Navigate back to the previous page
     Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Edit Bag success!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 }
