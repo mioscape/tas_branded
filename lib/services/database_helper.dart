@@ -1,7 +1,5 @@
-// import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-// import 'package:path_provider/path_provider.dart';
 import 'package:bag_branded/models/category_model.dart';
 import 'package:bag_branded/models/stock_model.dart';
 import 'package:bag_branded/models/bag_model.dart';
@@ -122,7 +120,6 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getAllBag() async {
     final Database db = await database;
 
-    // Fetch data from 'bag' table including 'stock' field
     final List<Map<String, dynamic>> bagList = await db.rawQuery('''
     SELECT bag.*, COALESCE(stock_bag.stock, 0) AS stock
     FROM bag
@@ -131,7 +128,6 @@ class DatabaseHelper {
 
     List<Map<String, dynamic>> newBagList = List.from(bagList);
 
-    // Iterate through the bagList and fetch category_name for each item
     for (var i = 0; i < bagList.length; i++) {
       final int categoryId = bagList[i]['category_id'] as int;
 
@@ -142,18 +138,11 @@ class DatabaseHelper {
         whereArgs: [categoryId],
       );
 
-      print('Bag ID: ${bagList[i]['id']}');
-      print('Category ID: $categoryId');
-
       if (categoryData.isNotEmpty) {
         final String categoryName = categoryData[0]['name'] as String;
-        print('Category Name: $categoryName');
 
-        // Create a mutable copy of bag and add 'category_name'
         Map<String, dynamic> mutableBag = Map.from(bagList[i]);
         mutableBag['category_name'] = categoryName;
-
-        // Update the original bag in the new list
         newBagList[i] = mutableBag;
       } else {
         print('No category data found for ID: $categoryId');
@@ -210,7 +199,6 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getDataBag(String username) async {
     final Database db = await database;
 
-    // Fetch data from 'bag' table including 'stock' field
     final List<Map<String, dynamic>> bagList = await db.rawQuery('''
     SELECT bag.*, COALESCE(stock_bag.stock, 0) AS stock
     FROM bag
@@ -220,29 +208,20 @@ class DatabaseHelper {
 
     List<Map<String, dynamic>> newBagList = List.from(bagList);
 
-    // Iterate through the bagList and fetch category_name for each item
     for (var i = 0; i < bagList.length; i++) {
       final int categoryId = bagList[i]['category_id'] as int;
 
-      // Fetch category_name based on category_id
       final List<Map<String, dynamic>> categoryData = await db.query(
         'category_bag',
         where: 'id = ?',
         whereArgs: [categoryId],
       );
 
-      print('Bag ID: ${bagList[i]['id']}');
-      print('Category ID: $categoryId');
-
       if (categoryData.isNotEmpty) {
         final String categoryName = categoryData[0]['name'] as String;
-        print('Category Name: $categoryName');
 
-        // Create a mutable copy of bag and add 'category_name'
         Map<String, dynamic> mutableBag = Map.from(bagList[i]);
         mutableBag['category_name'] = categoryName;
-
-        // Update the original bag in the new list
         newBagList[i] = mutableBag;
       } else {
         print('No category data found for ID: $categoryId');
@@ -277,7 +256,6 @@ class DatabaseHelper {
     ''', [bagId]);
 
     if (bagList.isNotEmpty) {
-      // Fetch category_name for the bag
       final int categoryId = bagList[0]['category_id'] as int;
 
       final List<Map<String, dynamic>> categoryData = await db.query(
@@ -285,15 +263,9 @@ class DatabaseHelper {
         where: 'id = ?',
         whereArgs: [categoryId],
       );
-
-      print('Bag ID: ${bagList[0]['id']}');
-      print('Category ID: $categoryId');
-
       if (categoryData.isNotEmpty) {
         final String categoryName = categoryData[0]['name'] as String;
-        print('Category Name: $categoryName');
 
-        // Create a mutable copy of bag and add 'category_name'
         Map<String, dynamic> mutableBag = Map.from(bagList[0]);
         mutableBag['category_name'] = categoryName;
 
@@ -337,20 +309,30 @@ class DatabaseHelper {
   Future<bool> registerUser(Users users) async {
     final Database database = _database.database;
 
-    try {
-      await database.insert(
-        DatabaseHelper.usersTable,
-        {
-          DatabaseHelper.usernameColumn: users.username,
-          DatabaseHelper.passwordColumn: users.password,
-          DatabaseHelper.userTypeColumn: users.userType,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-      return true; // Registration successful
-    } catch (e) {
-      print('Error registering user: $e');
-      return false; // Registration failed
+    final List<Map<String, dynamic>> isUsernameTaken = await database.query(
+      usersTable,
+      where: 'username = ?',
+      whereArgs: [users.username],
+    );
+
+    if (isUsernameTaken.isNotEmpty) {
+      return false;
+    } else {
+      try {
+        await database.insert(
+          DatabaseHelper.usersTable,
+          {
+            DatabaseHelper.usernameColumn: users.username,
+            DatabaseHelper.passwordColumn: users.password,
+            DatabaseHelper.userTypeColumn: users.userType,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        return true;
+      } catch (e) {
+        print('Error registering user: $e');
+        return false; // Registration failed
+      }
     }
   }
 
@@ -368,8 +350,7 @@ class DatabaseHelper {
     if (user.isNotEmpty) {
       return {
         'isValid': true,
-        'userType': user[0]
-            ['user_type'], // Replace 'userType' with the actual column name
+        'userType': user[0]['user_type'],
         'username': user[0]['username'],
         'password': user[0]['password'],
       };
@@ -386,9 +367,7 @@ class DatabaseHelper {
     final Database db = await database;
 
     try {
-      // Begin the database transaction
       await db.transaction((txn) async {
-        // Delete bags associated with the category
         await txn.delete(
           'bag',
           where: 'category_id = ?',
@@ -401,7 +380,6 @@ class DatabaseHelper {
           whereArgs: [categoryId],
         );
 
-        // Delete the category itself
         await txn.delete(
           'category_bag',
           where: 'id = ?',
@@ -410,7 +388,7 @@ class DatabaseHelper {
       });
     } catch (e) {
       print('Error deleting category: $e');
-      rethrow; // Re-throw the exception after logging
+      rethrow;
     }
   }
 
@@ -418,9 +396,7 @@ class DatabaseHelper {
     final Database db = await database;
 
     try {
-      // Begin the database transaction
       await db.transaction((txn) async {
-        // Delete bags associated with the category
         await txn.delete(
           'cart',
           where: 'id = ?',
@@ -429,7 +405,7 @@ class DatabaseHelper {
       });
     } catch (e) {
       print('Error deleting cart: $e');
-      rethrow; // Re-throw the exception after logging
+      rethrow;
     }
   }
 
@@ -442,7 +418,6 @@ class DatabaseHelper {
       [username, status],
     );
 
-    // Fetch additional details for each item in the cart
     final List<Map<String, dynamic>> completeCartItems = [];
     for (final cartItem in cartItems) {
       final bagDetails = await getBagDetails(cartItem['bag_id']);
@@ -453,6 +428,7 @@ class DatabaseHelper {
           'name': bagDetails['name'],
           'image_path': bagDetails['image_path'],
           'stock': bagDetails['stock'],
+          'price': bagDetails['price'],
         });
       }
     }
@@ -474,13 +450,13 @@ class DatabaseHelper {
     return bagDetails.isNotEmpty ? bagDetails.first : null;
   }
 
-  Future<bool> isBagInCart(int bagId, String username) async {
+  Future<bool> isBagInCart(int bagId, String username, String status) async {
     final Database db = await database;
 
     final List<Map<String, dynamic>> result = await db.query(
       cartTable,
-      where: 'bag_id = ? AND username = ?',
-      whereArgs: [bagId, username],
+      where: 'bag_id = ? AND username = ? AND status = ?',
+      whereArgs: [bagId, username, status],
     );
 
     return result.isNotEmpty;
@@ -489,11 +465,9 @@ class DatabaseHelper {
   Future<void> addToCart(int bagId, int quantity, String username) async {
     final Database db = await database;
 
-    // Check if the bag is already in the cart
-    final bool isInCart = await isBagInCart(bagId, username);
+    final bool isInCart = await isBagInCart(bagId, username, 'pending');
 
     if (isInCart) {
-      // If the bag is already in the cart, update the quantity
       await db.update(
         cartTable,
         {'quantity': quantity},
@@ -501,14 +475,13 @@ class DatabaseHelper {
         whereArgs: [bagId, username],
       );
     } else {
-      // If the bag is not in the cart, add it
       await db.insert(
         cartTable,
         {
           'bag_id': bagId,
           'quantity': quantity,
           'username': username,
-          'status': 'pending', // You can set the initial status as needed
+          'status': 'pending',
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -518,7 +491,6 @@ class DatabaseHelper {
   Future<void> updateCartItemQuantity(int id, int newQuantity) async {
     final Database db = await database;
 
-    // Check if the bag is in the cart
     final List<Map<String, dynamic>> result = await db.query(
       cartTable,
       where: 'id = ?',
@@ -526,7 +498,6 @@ class DatabaseHelper {
     );
 
     if (result.isNotEmpty) {
-      // Bag is in the cart, update the quantity
       await db.update(
         cartTable,
         {'quantity': newQuantity},
@@ -534,32 +505,55 @@ class DatabaseHelper {
         whereArgs: [id],
       );
     } else {
-      // Bag not found in the cart (this should not happen, handle accordingly)
       print('Error: Bag not found in the cart.');
     }
   }
 
-  Future<void> checkoutCart(String username) async {
+  Future<void> checkoutCart(String username, int bagId) async {
     final Database db = await database;
 
-    // Check if the bag is in the cart
-    final List<Map<String, dynamic>> result = await db.query(
-      cartTable,
-      where: 'username = ?',
-      whereArgs: [username],
+    // Get the bag details
+    final bagDetails = await db.query(
+      'stock_bag',
+      where: 'bag_id = ?',
+      whereArgs: [bagId],
+      limit: 1,
     );
 
-    if (result.isNotEmpty) {
-      // Bag is in the cart, update the quantity
-      await db.update(
-        cartTable,
-        {'status': 'done'},
-        where: 'username = ?',
-        whereArgs: [username],
-      );
+    if (bagDetails.isNotEmpty) {
+      final int availableStock = (bagDetails.first['stock'] as int?) ?? 0;
+      print('Available stock: $availableStock');
+
+      final int totalQuantityInCart = Sqflite.firstIntValue(await db.rawQuery(
+            'SELECT SUM(quantity) FROM cart WHERE bag_id = ? AND username = ? AND status = ?',
+            [bagId, username, 'pending'],
+          )) ??
+          0;
+
+      print('Total quantity in cart: $totalQuantityInCart');
+
+      if (totalQuantityInCart <= availableStock) {
+        final int remainingStock = availableStock - totalQuantityInCart;
+        print('Remaining stock: $remainingStock');
+
+        await db.update(
+          'stock_bag',
+          {'stock': remainingStock},
+          where: 'bag_id = ?',
+          whereArgs: [bagId],
+        );
+
+        await db.update(
+          'cart',
+          {'status': 'done'},
+          where: 'bag_id = ? AND username = ?',
+          whereArgs: [bagId, username],
+        );
+      } else {
+        throw Exception('Checkout failed. Quantity exceeds available stock.');
+      }
     } else {
-      // Bag not found in the cart (this should not happen, handle accordingly)
-      print('Error: Bag not found in the cart.');
+      throw Exception('Bag not found.');
     }
   }
 }

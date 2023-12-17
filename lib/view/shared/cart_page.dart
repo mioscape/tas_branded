@@ -91,43 +91,140 @@ class _CartPageState extends State<CartPage>
             itemBuilder: (context, index) {
               Map<String, dynamic> cartItem = cartItems[index];
 
-              void _decrementQuantity() {
-                setState(() {
-                  if (cartItem['quantity'] > 1) {
+              void _decrementQuantity(StateSetter setState) {
+                if (cartItem['quantity'] > 1) {
+                  setState(() {
                     // If the quantity is greater than 1, decrement it
                     cartItem['quantity']--;
 
                     // Call your method to update the cart in the database
                     _databaseHelper.updateCartItemQuantity(
-                        cartItem['id'], cartItem['quantity']);
-                  }
-                });
+                      cartItem['id'],
+                      cartItem['quantity'],
+                    );
+                  });
+                }
               }
 
-              void _incrementQuantity() {
-                setState(() {
-                  if (cartItem['quantity'] < cartItem['stock']) {
+              void _incrementQuantity(StateSetter setState) {
+                if (cartItem['quantity'] < cartItem['stock']) {
+                  setState(() {
                     cartItem['quantity']++;
 
                     _databaseHelper.updateCartItemQuantity(
-                        cartItem['id'], cartItem['quantity']);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Quantity limit reached.'),
-                        duration: Duration(seconds: 2),
+                      cartItem['id'],
+                      cartItem['quantity'],
+                    );
+                  });
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Out of Stock'),
+                      content: const Text(
+                        'The quantity you have selected is not available.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              }
+
+              void showCartItemDetails(Map<String, dynamic> cartItem) {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16.0),
+                      topRight: Radius.circular(16.0),
+                    ),
+                  ),
+                  builder: (context) {
+                    return Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: 40.0,
+                              height: 4.0,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(2.0),
+                              ),
+                              margin: const EdgeInsets.only(bottom: 16.0),
+                            ),
+                          ),
+                          // Image at the top center
+                          Container(
+                            width: double.infinity,
+                            height: 200.0,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              image: DecorationImage(
+                                image: cartItem['image_path'] != null
+                                    ? FileImage(File(cartItem['image_path']))
+                                    : const AssetImage(
+                                            'assets/images/no_image.png')
+                                        as ImageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          const Divider(),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cartItem['name'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  formatCurrency(cartItem['price']),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 18.0,
+                                  ),
+                                ),
+                                Text(
+                                  'Stock: ${cartItem['stock']}',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8.0),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     );
-                  }
-                });
+                  },
+                );
               }
 
               return Card(
                 margin: const EdgeInsets.all(8.0),
                 child: InkWell(
                   onTap: () {
-                    // Handle card tap, e.g., navigate to details page
                     // _navigateToCartItemDetails(context, cartItem);
+                    showCartItemDetails(cartItem);
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,106 +261,157 @@ class _CartPageState extends State<CartPage>
                               ),
                             ),
                             const SizedBox(height: 4.0),
-                            // Text(
-                            //   'Quantity: ${cartItem['quantity']}',
-                            //   style: const TextStyle(
-                            //     color: Colors.grey,
-                            //   ),
-                            // ),
                             Text(
-                              'Stock: ${cartItem['stock']}',
+                              formatCurrency(cartItem['price']),
                               style: const TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
-                            Row(
-                              children: [
-                                const Text('Quantity:'),
-                                SizedBox(
-                                  width: 130,
-                                  child: Row(
-                                    children: [
-                                      if (cartItem['stock'] == 0)
-                                        ...[]
-                                      else ...[
-                                        IconButton(
-                                          icon: Icon(Icons.remove),
-                                          onPressed: () {
-                                            _decrementQuantity();
-                                          },
-                                        ),
-                                      ],
-                                      if (cartItem['stock'] == 0) ...[
-                                        const Text(
-                                          ' Out of Stock',
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 16.0,
+                            if (status == 'done') ...[
+                              const SizedBox(height: 4.0),
+                              Text(
+                                'Total: ${formatCurrency(cartItem['price'] * cartItem['quantity'])}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ] else ...[
+                              Text(
+                                'Stock: ${cartItem['stock']}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                            StatefulBuilder(
+                              builder: (context, setState) => Row(
+                                children: [
+                                  const Text('Quantity:'),
+                                  SizedBox(
+                                    width: 130,
+                                    child: Row(
+                                      children: [
+                                        if (cartItem['stock'] == 0 ||
+                                            status == 'done')
+                                          ...[]
+                                        else ...[
+                                          IconButton(
+                                            icon: Icon(Icons.remove),
+                                            onPressed: () {
+                                              _decrementQuantity(setState);
+                                            },
                                           ),
-                                        ),
-                                      ] else ...[
-                                        SizedBox(
-                                          width: 50,
-                                          height: 40,
-                                          child: TextField(
-                                            keyboardType: TextInputType.number,
-                                            controller: TextEditingController(
-                                                text: cartItem['quantity']
-                                                    .toString()),
-                                            textAlign: TextAlign.center,
-                                            readOnly: true,
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                              ),
+                                        ],
+                                        if (cartItem['stock'] == 0) ...[
+                                          const Text(
+                                            ' Out of Stock',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 16.0,
                                             ),
                                           ),
-                                        ),
+                                        ] else ...[
+                                          if (status == 'done') ...[
+                                            Text(
+                                              ' ${cartItem['quantity']}',
+                                              style: TextStyle(
+                                                fontSize: 16.0,
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            SizedBox(
+                                              width: 50,
+                                              height: 40,
+                                              child: TextField(
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                controller:
+                                                    TextEditingController(
+                                                  text: cartItem['quantity']
+                                                      .toString(),
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                readOnly: true,
+                                                decoration: InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                        if (cartItem['stock'] == 0 ||
+                                            status == 'done')
+                                          ...[]
+                                        else ...[
+                                          IconButton(
+                                            icon: Icon(Icons.add),
+                                            onPressed: () {
+                                              _incrementQuantity(setState);
+                                            },
+                                          ),
+                                        ],
                                       ],
-                                      if (cartItem['stock'] == 0)
-                                        ...[]
-                                      else ...[
-                                        IconButton(
-                                          icon: Icon(Icons.add),
-                                          onPressed: () {
-                                            _incrementQuantity();
-                                          },
-                                        ),
-                                      ],
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              fixedSize: const Size(200, 48),
-                            ),
-                            onPressed: () async {
-                              // Add functionality, e.g., remove from cart
-                              await _databaseHelper
-                                  .removeFromCart(cartItem['id']);
-                              await readData();
-                            },
-                            child: const Text(
-                              'Remove from Cart',
-                              style: TextStyle(
-                                fontSize: 16.0,
+                      if (status == 'pending') ...[
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                fixedSize: const Size(200, 48),
+                              ),
+                              onPressed: () async {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Remove from Cart'),
+                                    content: const Text(
+                                      'Are you sure you want to remove this item from your cart?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          await _databaseHelper
+                                              .removeFromCart(cartItem['id']);
+                                          await readData();
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Remove from Cart',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      if (cartItem['stock'] == 0)
+                      ],
+                      if (cartItem['stock'] == 0 || status == 'done')
                         ...[]
                       else ...[
                         Padding(
@@ -275,8 +423,31 @@ class _CartPageState extends State<CartPage>
                                 fixedSize: const Size(200, 48),
                               ),
                               onPressed: () {
-                                // Add functionality, e.g., remove from cart
-                                // _removeFromCart(cartItem['id']);
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Checkout'),
+                                    content: Text(
+                                      'Are you sure you want to checkout? You will not be able to edit your cart after this.\nTotal: ${formatCurrency(cartItem['price'] * cartItem['quantity'])}',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          await _checkout(cartItem['bag_id']);
+                                          await readData();
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               },
                               child: const Text(
                                 'Checkout',
@@ -297,6 +468,31 @@ class _CartPageState extends State<CartPage>
         }
       },
     );
+  }
+
+  Future<void> _checkout(int bagId) async {
+    try {
+      await _databaseHelper.checkoutCart(widget.username!, bagId);
+
+      setState(() {
+        // Update the UI with the new cart items
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Checkout successful!'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      print('Error during checkout: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Checkout failed. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   String formatCurrency(int price) {

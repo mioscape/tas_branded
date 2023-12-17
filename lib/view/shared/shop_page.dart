@@ -71,8 +71,6 @@ class _ShopPageState extends State<ShopPage> {
         ),
         child: InkWell(
           onTap: () {
-            // Handle card tap, e.g., navigate to details page
-            // _navigateToDetailItemPage(context, bag);
             _showItemDetails(bag, category);
           },
           child: Column(
@@ -163,16 +161,37 @@ class _ShopPageState extends State<ShopPage> {
 
   void _buyBag(int bagId) async {
     // Check if the bag is already in the cart
-    final isInCart = await _databaseHelper.isBagInCart(bagId, widget.username!);
+    final isInCart =
+        await _databaseHelper.isBagInCart(bagId, widget.username!, 'pending');
 
     if (isInCart) {
-      // Show a message or handle the case where the bag is already in the cart
-      print('Bag is already in the cart.');
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Bag is already in the cart.'),
+          content: const Text(
+            'Please go to the cart to change the quantity.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     } else {
       // Add the bag to the cart
       await _databaseHelper.addToCart(bagId, 1, widget.username!);
-      print('Bag added to the cart.');
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bag added to the cart.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
       // Refresh the data to update the UI
       _readData();
     }
@@ -273,7 +292,8 @@ class _ShopPageState extends State<ShopPage> {
                           fixedSize: const Size(400.0, 50.0),
                         ),
                         onPressed: () {
-                          // Add functionality for the "Add to Cart" button
+                          _buyBag(item['id']);
+                          Navigator.pop(context);
                         },
                         child: const Text('Add to Cart'),
                       )

@@ -1,4 +1,4 @@
-package com.example.tas_branded
+package com.mioscape.bb
 
 import io.flutter.embedding.android.FlutterActivity
 

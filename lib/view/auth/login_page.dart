@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const Spacer(), // Added spacer to push the version label to the bottom
             const Text(
-              'v0.9.3-beta+2333', // Replace with your actual version number
+              'v1.0.0-stable', // Replace with your actual version number
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey,

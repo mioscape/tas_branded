@@ -109,7 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const Spacer(), // Added spacer to push the version label to the bottom
               const Text(
-                'v0.9.3-beta+2333', // Replace with your actual version number
+                'v1.0.0-stable', // Replace with your actual version number
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -160,7 +160,7 @@ class _RegisterPageState extends State<RegisterPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Registration Failed'),
-            content: const Text('Invalid username or password.'),
+            content: const Text('Username already exists.'),
             actions: [
               TextButton(
                 onPressed: () {
