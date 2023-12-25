@@ -1,17 +1,35 @@
-# bag_branded
+# Bag Market
 
-A new Flutter project.
+Bag Market is a Flutter-based mobile application designed for buying and selling bags. Whether you're a bag enthusiast looking for your next stylish accessory or a seller wanting to showcase your bag collection, Bag Market has you covered.
+
+## Features
+
+- **Buyer and Seller Profiles:** Create and manage your buyer or seller profile to personalize your Bag Market experience.
+  
+- **Product Listings:** Browse through a diverse range of bags listed by sellers. View detailed information, images, and prices.
+
+- **Cart Management:** Easily add and remove items from your cart. Adjust quantities and proceed to checkout when ready.
+
+- **Checkout and Transactions:** Securely complete transactions and manage your order history.
+
+## Technologies Used
+
+- **Flutter:** Built using the Flutter framework for a seamless cross-platform experience.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To run Bag Market locally, follow these steps:
 
-A few resources to get you started if this is your first Flutter project:
+1. Clone the repository.
+2. Set up your Flutter development environment.
+3. Run the application on your preferred emulator or physical device.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+For detailed instructions, refer to the [Flutter Documentation](https://flutter.dev/docs/get-started/install).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# bag_branded
+## Contributing
+
+Bag Market is a closed-source project and currently not open for external contributions.
+
+## License
+
+This project is not licensed for open-source use. All rights reserved.
