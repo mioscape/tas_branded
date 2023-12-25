@@ -25,17 +25,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the current theme mode
     final ThemeMode currentThemeMode =
         Provider.of<ThemeProvider>(context).isDarkMode
             ? ThemeMode.dark
             : ThemeMode.light;
 
-    // Set system navigation bar color based on the current theme mode
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: currentThemeMode == ThemeMode.dark
-          ? Colors.blueGrey // Set the dark mode color
-          : Colors.white, // Set the light mode color
+      systemNavigationBarColor:
+          currentThemeMode == ThemeMode.dark ? Colors.blueGrey : Colors.white,
     ));
 
     return MaterialApp(
