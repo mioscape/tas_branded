@@ -1,6 +1,8 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:bag_branded/models/category_model.dart';
-import 'package:bag_branded/services/database_helper.dart'; // Import your database helper
+import 'package:bag_branded/services/database_helper.dart';
 
 class AddCategoryPage extends StatefulWidget {
   final String username;
@@ -39,12 +41,9 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     }
 
     Category category = Category(id: 0, name: name, addedBy: username);
-
-    // Add category to the database
     await DatabaseHelper().addCategory(category);
     _nameController.clear();
 
-    // Navigate back to the previous screen (homepage)
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Add Category ${category.name} success!'),
@@ -56,9 +55,6 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('Add Category'),
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

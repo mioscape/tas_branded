@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:bag_branded/models/category_model.dart';
@@ -15,31 +17,24 @@ class DatabaseHelper {
   static const String usersTable = 'users';
   static const String cartTable = 'cart';
 
-  // idColumn is used in all tables
   static const String idColumn = 'id';
 
-  // bagTable columns
   static const String nameColumn = 'name';
   static const String priceColumn = 'price';
   static const String imagePathColumn = 'image_path';
 
-  // Reference columns
   static const String addedByColumn = 'added_by';
   static const String categoryIdColumn = 'category_id';
   static const String bagIdColumn = 'bag_id';
 
-  // categoryBagTable columns
   static const String categoryNameColumn = 'name';
 
-  // stockBagTable columns
   static const String stockColumn = 'stock';
 
-  // usersTable columns
   static const String usernameColumn = 'username';
   static const String passwordColumn = 'password';
   static const String userTypeColumn = 'user_type';
 
-  // cartTable columns
   static const String quantityColumn = 'quantity';
   static const String statusColumn = 'status';
 
@@ -60,7 +55,7 @@ class DatabaseHelper {
 
   Future<Database> initializeDatabase() async {
     _database = await openDatabase(
-      join(await getDatabasesPath(), 'bag_branded_dev.db'),
+      join(await getDatabasesPath(), 'bag_branded.db'),
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE bag (
@@ -131,7 +126,6 @@ class DatabaseHelper {
     for (var i = 0; i < bagList.length; i++) {
       final int categoryId = bagList[i]['category_id'] as int;
 
-      // Fetch category_name based on category_id
       final List<Map<String, dynamic>> categoryData = await db.query(
         'category_bag',
         where: 'id = ?',
@@ -165,7 +159,7 @@ class DatabaseHelper {
   }
 
   Future<int> addBagWithImage(Bag bag, Stock stock) async {
-    final Database database = await _database.database;
+    final Database database = _database.database;
 
     int bagId = await database.transaction<int>((txn) async {
       int id = await txn.insert(
@@ -240,7 +234,7 @@ class DatabaseHelper {
   }
 
   Future<void> deleteBag(int id) async {
-    final Database db = await _database;
+    final Database db = _database;
     await db.delete('bag', where: 'id = ?', whereArgs: [id]);
     await db.delete('stock_bag', where: 'bag_id = ?', whereArgs: [id]);
   }
@@ -281,7 +275,7 @@ class DatabaseHelper {
   }
 
   Future<void> editBagWithImage(Bag bag, Stock stock) async {
-    final Database database = await _database.database;
+    final Database database = _database.database;
 
     await database.update(
       'bag',
@@ -331,15 +325,14 @@ class DatabaseHelper {
         return true;
       } catch (e) {
         print('Error registering user: $e');
-        return false; // Registration failed
+        return false;
       }
     }
   }
 
-  // Function to validate login credentials
   Future<Map<String, dynamic>> validateLogin(
       String username, String password) async {
-    final Database database = await _database.database;
+    final Database database = _database.database;
 
     final List<Map<String, dynamic>> user = await database.query(
       'users',
@@ -355,7 +348,6 @@ class DatabaseHelper {
         'password': user[0]['password'],
       };
     } else {
-      // Return validation result and null for user type
       return {
         'isValid': false,
         'userType': null,
@@ -413,24 +405,36 @@ class DatabaseHelper {
       String username, String status) async {
     final Database db = await initializeDatabase();
 
-    final List<Map<String, dynamic>> cartItems = await db.rawQuery(
-      'SELECT * FROM $cartTable WHERE username = ? AND status = ?',
-      [username, status],
-    );
+    final List<Map<String, dynamic>> cartItems = await db.rawQuery('''
+    SELECT
+      cart.*,
+      bag.name AS bag_name,
+      bag.image_path AS bag_image_path,
+      bag.price AS bag_price,
+      COALESCE(stock_bag.stock, 0) AS bag_stock,
+      category_bag.id AS category_id,
+      category_bag.name AS category_name
+    FROM $cartTable
+    JOIN $bagTable AS bag ON cart.bag_id = bag.id
+    LEFT JOIN $stockBagTable AS stock_bag ON bag.id = stock_bag.bag_id
+    LEFT JOIN $categoryBagTable AS category_bag ON bag.category_id = category_bag.id
+    WHERE cart.username = ? AND cart.status = ?
+  ''', [username, status]);
 
     final List<Map<String, dynamic>> completeCartItems = [];
     for (final cartItem in cartItems) {
-      final bagDetails = await getBagDetails(cartItem['bag_id']);
-      if (bagDetails != null) {
-        completeCartItems.add({
-          ...cartItem,
-          'id': cartItem['id'],
-          'name': bagDetails['name'],
-          'image_path': bagDetails['image_path'],
-          'stock': bagDetails['stock'],
-          'price': bagDetails['price'],
-        });
-      }
+      completeCartItems.add({
+        'id': cartItem['id'],
+        'quantity': cartItem['quantity'],
+        'status': cartItem['status'],
+        'bag_id': cartItem['bag_id'],
+        'name': cartItem['bag_name'],
+        'image_path': cartItem['bag_image_path'],
+        'price': cartItem['bag_price'],
+        'stock': cartItem['bag_stock'],
+        'category_id': cartItem['category_id'],
+        'category_name': cartItem['category_name'],
+      });
     }
 
     return completeCartItems;
@@ -512,7 +516,6 @@ class DatabaseHelper {
   Future<void> checkoutCart(String username, int bagId) async {
     final Database db = await database;
 
-    // Get the bag details
     final bagDetails = await db.query(
       'stock_bag',
       where: 'bag_id = ?',

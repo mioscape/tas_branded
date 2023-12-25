@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:bag_branded/services/database_helper.dart';
 import 'package:bag_branded/view/auth/login_page.dart';
@@ -24,15 +25,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current theme mode
+    final ThemeMode currentThemeMode =
+        Provider.of<ThemeProvider>(context).isDarkMode
+            ? ThemeMode.dark
+            : ThemeMode.light;
+
+    // Set system navigation bar color based on the current theme mode
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: currentThemeMode == ThemeMode.dark
+          ? Colors.blueGrey // Set the dark mode color
+          : Colors.white, // Set the light mode color
+    ));
+
     return MaterialApp(
       title: 'Bag Branded App',
       home: const LoginPage(),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(), // Default light theme
-      darkTheme: ThemeData.dark(), // Default dark theme
-      themeMode: Provider.of<ThemeProvider>(context).isDarkMode
-          ? ThemeMode.dark
-          : ThemeMode.light, // Use the ThemeProvider to decide the theme mode
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: currentThemeMode,
     );
   }
 }

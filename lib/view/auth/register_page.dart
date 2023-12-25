@@ -1,17 +1,22 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:bag_branded/models/users_model.dart';
 import 'package:bag_branded/services/database_helper.dart';
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
   @override
   _RegisterPageState createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  TextEditingController _confirmPasswordController = TextEditingController();
-  String _selectedUserType = 'buyer'; // Default user type
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  String _selectedUserType = 'buyer';
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -107,9 +112,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 },
                 child: const Text('Register'),
               ),
-              const Spacer(), // Added spacer to push the version label to the bottom
+              const Spacer(),
               const Text(
-                'v1.0.0-stable', // Replace with your actual version number
+                'v1.0.2-stable',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
@@ -129,11 +134,9 @@ class _RegisterPageState extends State<RegisterPage> {
       userType: _selectedUserType,
     );
 
-    // Perform user registration
     bool registrationSuccess = await DatabaseHelper().registerUser(users);
 
     if (registrationSuccess) {
-      // ignore: use_build_context_synchronously
       await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -151,10 +154,8 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         },
       );
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context); // Close the registration page
+      Navigator.pop(context);
     } else {
-      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
         builder: (BuildContext context) {

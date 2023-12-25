@@ -6,7 +6,8 @@ class ProfilePage extends StatelessWidget {
   final String username;
   final String userType;
 
-  ProfilePage({required this.username, required this.userType});
+  const ProfilePage(
+      {super.key, required this.username, required this.userType});
 
   @override
   Widget build(BuildContext context) {
@@ -77,20 +78,16 @@ class ProfilePage extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                // Close the dialog
                 Navigator.of(context).pop();
               },
               child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
-                // Perform logout actions, if any
-
-                // Navigate to the login page and remove all existing routes from the stack
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                  (Route<dynamic> route) => false, // Remove all existing routes
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (Route<dynamic> route) => false,
                 );
               },
               child: const Text("Logout"),

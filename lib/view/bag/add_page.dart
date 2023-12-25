@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_build_context_synchronously, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:bag_branded/models/stock_model.dart';
 import 'package:bag_branded/models/bag_model.dart';
@@ -10,8 +12,7 @@ class AddBagPage extends StatefulWidget {
   final DatabaseHelper databaseHelper;
 
   const AddBagPage(
-      {Key? key, required this.databaseHelper, required this.username})
-      : super(key: key);
+      {super.key, required this.databaseHelper, required this.username});
 
   @override
   _AddBagPageState createState() => _AddBagPageState();
@@ -24,8 +25,6 @@ class _AddBagPageState extends State<AddBagPage> {
   int? _selectedCategoryId;
   List<Map<String, dynamic>> _categories = [];
   File? _selectedImage;
-  // ignore: unused_field
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -38,26 +37,21 @@ class _AddBagPageState extends State<AddBagPage> {
   @override
   void initState() {
     super.initState();
-    _fetchCategories(); // Fetch categories when the widget is initialized
+    _fetchCategories();
   }
 
   Future<void> _fetchCategories() async {
     final String username = widget.username;
-    // Query the database for categories
+
     List<Map<String, dynamic>> categories =
         await widget.databaseHelper.getDataCategories(username);
 
-    // Update the state with the fetched categories
     setState(() {
       _categories = categories;
     });
   }
 
   Future<void> _selectImage() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
@@ -71,12 +65,7 @@ class _AddBagPageState extends State<AddBagPage> {
         });
       }
     } catch (e) {
-      // Handle file picking error
       print('Error selecting image: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -98,7 +87,7 @@ class _AddBagPageState extends State<AddBagPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 8.0), // Add gap
+                  const SizedBox(height: 8.0),
                   TextField(
                     controller: _priceController,
                     decoration: const InputDecoration(
@@ -107,7 +96,7 @@ class _AddBagPageState extends State<AddBagPage> {
                     ),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 8.0), // Add gap
+                  const SizedBox(height: 8.0),
                   TextField(
                     controller: _stockController,
                     decoration: const InputDecoration(
@@ -116,7 +105,7 @@ class _AddBagPageState extends State<AddBagPage> {
                     ),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 8.0), // Add gap
+                  const SizedBox(height: 8.0),
                   DropdownButtonFormField<int>(
                     decoration: const InputDecoration(
                       labelText: 'Category',
@@ -131,7 +120,7 @@ class _AddBagPageState extends State<AddBagPage> {
                     items: [
                       const DropdownMenuItem<int>(
                         value: null,
-                        child: Text(''), // Placeholder
+                        child: Text(''),
                       ),
                       ..._categories.map<DropdownMenuItem<int>>((category) {
                         return DropdownMenuItem<int>(
@@ -165,14 +154,11 @@ class _AddBagPageState extends State<AddBagPage> {
 
   Future<void> _addBag(BuildContext context) async {
     final String username = widget.username;
-    print(username);
-    // Validate data
     if (_nameController.text.trim().isEmpty ||
         _priceController.text.trim().isEmpty ||
         _stockController.text.trim().isEmpty ||
         _selectedCategoryId == null ||
         _selectedImage == null) {
-      // Show an error message or handle the validation error as needed
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -193,7 +179,6 @@ class _AddBagPageState extends State<AddBagPage> {
       return;
     }
 
-    // Add data bag to the database
     Bag bag = Bag(
       id: 0,
       name: _nameController.text.trim(),
@@ -220,7 +205,6 @@ class _AddBagPageState extends State<AddBagPage> {
     _priceController.clear();
     _stockController.clear();
 
-    // Navigate back to the previous page
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Add Bag success!'),

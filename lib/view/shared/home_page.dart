@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:bag_branded/view/shared/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
@@ -35,9 +37,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text('Toko Bag Branded'),
-      // ),
       body: Center(
         child: _getBody(),
       ),

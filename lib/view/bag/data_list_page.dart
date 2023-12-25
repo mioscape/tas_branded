@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, avoid_print, use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
@@ -31,18 +33,15 @@ class _DataListPageState extends State<DataListPage> {
   Future<void> _readData() async {
     await _databaseHelper.initializeDatabase();
 
-    // Fetch data from 'bag' table including 'stock' field
+    //
     final List<Map<String, dynamic>> bagList =
         await _databaseHelper.getDataBag(widget.username);
-    print('Bag List: $bagList');
 
     setState(() {
       _originalBagList = List.from(bagList);
       _bagList = bagList;
       categoryData = _groupDataByCategory(_bagList);
     });
-
-    print('Category Data: $categoryData');
   }
 
   Map<String, List<Map<String, dynamic>>> _groupDataByCategory(
@@ -52,8 +51,6 @@ class _DataListPageState extends State<DataListPage> {
     for (var bag in bagList) {
       var categoryId = bag['category_id'] as int?;
       var categoryName = bag['category_name'] as String?;
-
-      print('Category ID: $categoryId, Category Name: $categoryName');
 
       if (categoryId != null && categoryName != null) {
         var categoryKey = '$categoryId-$categoryName';
@@ -79,7 +76,7 @@ class _DataListPageState extends State<DataListPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
           children: [
-            const SizedBox(height: 10), // Adjust the height as needed
+            const SizedBox(height: 10),
             SearchAnchor(
               builder: (BuildContext context, SearchController controller) {
                 return buildSearchBar(controller);
@@ -89,7 +86,7 @@ class _DataListPageState extends State<DataListPage> {
                 return buildSuggestions(controller);
               },
             ),
-            const SizedBox(height: 10), // Adjust the height as needed
+            const SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
                 itemCount: categoryData.keys.length,
@@ -196,7 +193,6 @@ class _DataListPageState extends State<DataListPage> {
                   builder: (context) => EditBagPage(
                     bagId: bag['id'],
                     onBagUpdated: () {
-                      // Callback function to refresh data list
                       _readData();
                     },
                   ),
@@ -226,18 +222,17 @@ class _DataListPageState extends State<DataListPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
                 _deleteCategoryPassword(categoryId);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.red, // Use red color for the delete button
+                backgroundColor: Colors.red,
               ),
               child: const Text('Delete'),
             ),
@@ -254,7 +249,6 @@ class _DataListPageState extends State<DataListPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Enter Password to Delete Category'),
-          // titlePadding: const EdgeInsets.all(8.0), // Adjust title padding
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
@@ -342,28 +336,6 @@ class _DataListPageState extends State<DataListPage> {
         ),
       );
     }
-  }
-
-  List<Map<String, dynamic>> _searchData(String query) {
-    return _originalBagList
-        .where((bag) =>
-            bag['name'].toString().toLowerCase().contains(query.toLowerCase()))
-        .toList();
-  }
-
-  void _navigateToEditBag(BuildContext context, int bagId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditBagPage(
-          bagId: bagId,
-          onBagUpdated: () {
-            // Callback function to refresh data list
-            _readData();
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> _deleteData(int id) async {

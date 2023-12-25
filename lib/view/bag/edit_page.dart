@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:bag_branded/models/bag_model.dart';
@@ -10,8 +12,8 @@ class EditBagPage extends StatefulWidget {
   final int bagId;
   final Function onBagUpdated;
 
-  const EditBagPage({Key? key, required this.bagId, required this.onBagUpdated})
-      : super(key: key);
+  const EditBagPage(
+      {super.key, required this.bagId, required this.onBagUpdated});
 
   @override
   _EditBagPageState createState() => _EditBagPageState();
@@ -32,12 +34,10 @@ class _EditBagPageState extends State<EditBagPage> {
   }
 
   Future<void> _fetchDataForEdit() async {
-    // Fetch the existing data for editing based on widget.bagId
     Map<String, dynamic>? bagData =
         await _databaseHelper.getBagById(widget.bagId);
 
     if (bagData != null) {
-      // Populate the form fields with the existing data
       _nameController.text = bagData['name'];
       _priceController.text = bagData['price'].toString();
       _stockController.text = bagData['stock'].toString();
@@ -73,14 +73,14 @@ class _EditBagPageState extends State<EditBagPage> {
               decoration: const InputDecoration(
                   labelText: 'Bag name', border: OutlineInputBorder()),
             ),
-            const SizedBox(height: 8.0), // Add gap
+            const SizedBox(height: 8.0),
             TextField(
               controller: _priceController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                   labelText: 'Price', border: OutlineInputBorder()),
             ),
-            const SizedBox(height: 8.0), // Add gap
+            const SizedBox(height: 8.0),
             TextField(
               controller: _stockController,
               keyboardType: TextInputType.number,
@@ -112,11 +112,9 @@ class _EditBagPageState extends State<EditBagPage> {
   Future<void> _updateBagData() async {
     Map<String, dynamic>? bagData =
         await _databaseHelper.getBagById(widget.bagId);
-    // Validate data
     if (_nameController.text.trim().isEmpty ||
         _priceController.text.trim().isEmpty ||
         _stockController.text.trim().isEmpty) {
-      // Show an error message or handle the validation error as needed
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -153,13 +151,10 @@ class _EditBagPageState extends State<EditBagPage> {
       categoryId: 0,
     );
 
-    // Update the data in the database
     await _databaseHelper.editBagWithImage(bag, stock);
 
-    // Notify the parent widget about the update
     widget.onBagUpdated();
 
-    // Navigate back to the previous page
     Navigator.pop(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
