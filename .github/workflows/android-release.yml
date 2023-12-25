@@ -34,3 +34,23 @@ jobs:
       with:
         name: release
         path: artifacts/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install GitHub Release Action
+      run: npm install -g @softprops/action-gh-release
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: 'release/*.apk'
+        token: ${{ secrets.TOKEN }}
