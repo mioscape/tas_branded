@@ -47,13 +47,7 @@ jobs:
 
       - name: Install GitHub CLI
         run: |
-          sudo apt-get install unzip
-          GH_VERSION=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | jq -r .tag_name)
-          GH_URL="https://github.com/cli/cli/releases/download/$GH_VERSION/gh_$GH_VERSION_linux_amd64.tar.gz"
-          curl -sL $GH_URL -o gh.tar.gz
-          tar tzf gh.tar.gz
-          tar xzf gh.tar.gz
-          sudo mv gh_$GH_VERSION_linux_amd64/gh /usr/local/bin/
+          sudo apt-get install gh
 
       - name: Create Release
         run: |
