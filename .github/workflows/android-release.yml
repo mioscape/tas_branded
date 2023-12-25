@@ -26,14 +26,14 @@ jobs:
 
       - name: Archive APKs
         run: |
-          mkdir -p artifacts
-          mv build/app/outputs/flutter-apk/*.apk artifacts/
+          mkdir -p release
+          mv build/app/outputs/flutter-apk/*.apk release/
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v2
         with:
           name: release
-          path: artifacts/
+          path: release/
 
   release:
     needs: build
