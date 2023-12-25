@@ -31,8 +31,9 @@ class MyApp extends StatelessWidget {
             : ThemeMode.light;
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Theme.of(context).primaryColor,
-    ));
+        systemNavigationBarColor: currentThemeMode == ThemeMode.dark
+            ? Theme.of(context).primaryColorDark
+            : Theme.of(context).primaryColorLight));
 
     return MaterialApp(
       title: 'Bag Branded App',
