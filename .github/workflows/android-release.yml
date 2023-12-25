@@ -47,10 +47,11 @@ jobs:
 
       - name: Install GitHub CLI
         run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-          sudo apt-add-repository https://cli.github.com/packages
-          sudo apt-get update
-          sudo apt-get install gh
+          sudo apt-get install unzip
+          GH_VERSION=$(curl -s https://api.github.com/repos/cli/cli/releases/latest | jq -r .tag_name)
+          GH_URL="https://github.com/cli/cli/releases/download/$GH_VERSION/gh_$GH_VERSION_linux_amd64.tar.gz"
+          curl -sL $GH_URL | tar xz
+          sudo mv gh_$GH_VERSION_linux_amd64/gh /usr/local/bin/
 
       - name: Create Release
         run: |
