@@ -28,10 +28,14 @@ jobs:
         run: |
           echo "Flutter version : $(flutter --version)"
 
-
+      - name: Install yaml2json and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install yq jq
+  
       - name: Extract version from pubspec.yaml
         id: extract_version
-        run: echo "::set-output name=version::$(yaml2json pubspec.yaml | jq -r .version)"
+        run: echo "::set-output name=version::$(yq eval '.version' pubspec.yaml)"
 
       - name: Start release build
         run: flutter build apk --split-per-abi
@@ -45,6 +49,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.run_number }}
           release_name: Release ${{ github.run_number }}
           body: |
