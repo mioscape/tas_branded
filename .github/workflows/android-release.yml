@@ -10,30 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.16.2'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.2'
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Build APKs
-      run: flutter build apk --release
+      - name: Build APKs
+        run: flutter build apk --release
 
-    - name: Archive APKs
-      run: |
-        mkdir -p artifacts
-        mv build/app/outputs/flutter-apk/*.apk artifacts/
+      - name: Archive APKs
+        run: |
+          mkdir -p artifacts
+          mv build/app/outputs/flutter-apk/*.apk artifacts/
 
-    - name: Upload APK artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: release
-        path: artifacts/
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: artifacts/
 
   release:
     needs: build
@@ -49,8 +49,12 @@ jobs:
         run: |
           sudo apt-get install gh
 
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: echo "::set-output name=version::$(yaml2json pubspec.yaml | jq -r .version)"
+
       - name: Create Release
         run: |
-          gh release create <tag_name> release/*.apk
+          gh release create ${{ steps.extract_version.outputs.version }} release/*.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
