@@ -1,10 +1,10 @@
-# Bag Market
+# Bag Branded
 
-Bag Market is a Flutter-based mobile application designed for buying and selling bags. Whether you're a bag enthusiast looking for your next stylish accessory or a seller wanting to showcase your bag collection, Bag Market has you covered.
+Bag Branded is a Flutter-based mobile application designed for buying and selling bags. Whether you're a bag enthusiast looking for your next stylish accessory or a seller wanting to showcase your bag collection, Bag Branded has you covered.
 
 ## Features
 
-- **Buyer and Seller Profiles:** Create and manage your buyer or seller profile to personalize your Bag Market experience.
+- **Buyer and Seller Profiles:** Create and manage your buyer or seller profile to personalize your Bag Branded experience.
   
 - **Product Listings:** Browse through a diverse range of bags listed by sellers. View detailed information, images, and prices.
 
@@ -18,7 +18,7 @@ Bag Market is a Flutter-based mobile application designed for buying and selling
 
 ## Getting Started
 
-To run Bag Market locally, follow these steps:
+To run Bag Branded locally, follow these steps:
 
 1. Clone the repository.
 2. Set up your Flutter development environment.
@@ -28,7 +28,7 @@ For detailed instructions, refer to the [Flutter Documentation](https://flutter.
 
 ## Contributing
 
-Bag Market is a closed-source project and currently not open for external contributions.
+Bag Branded is a closed-source project and currently not open for external contributions.
 
 ## License
 
