@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
 import 'package:bag_branded/view/shared/home_page.dart';
 import 'package:bag_branded/view/auth/register_page.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +17,22 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late Future<String> _appVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    _appVersion = _getAppVersion();
+  }
+
+  Future<String> _getAppVersion() async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,18 +96,28 @@ class _LoginPageState extends State<LoginPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const RegisterPage()),
+                      builder: (context) => const RegisterPage(),
+                    ),
                   );
                 },
                 child: const Text('Register'),
               ),
               const Spacer(),
-              const Text(
-                'v1.0.2-stable',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+              FutureBuilder<String>(
+                future: _appVersion,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else {
+                    return Text(
+                      'v${snapshot.data}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    );
+                  }
+                },
               ),
             ],
           ),

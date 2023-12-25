@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:bag_branded/models/users_model.dart';
 import 'package:bag_branded/services/database_helper.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -18,6 +19,22 @@ class _RegisterPageState extends State<RegisterPage> {
       TextEditingController();
   String _selectedUserType = 'buyer';
   final _formKey = GlobalKey<FormState>();
+  late Future<String> _appVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    _appVersion = _getAppVersion();
+  }
+
+  Future<String> _getAppVersion() async {
+    try {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,12 +130,21 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: const Text('Register'),
               ),
               const Spacer(),
-              const Text(
-                'v1.0.2-stable',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+              FutureBuilder<String>(
+                future: _appVersion,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else {
+                    return Text(
+                      'v${snapshot.data}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    );
+                  }
+                },
               ),
             ],
           ),
