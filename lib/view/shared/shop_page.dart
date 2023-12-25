@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
@@ -7,7 +9,7 @@ import 'package:search_page/search_page.dart';
 class ShopPage extends StatefulWidget {
   final String? username;
 
-  ShopPage({this.username});
+  const ShopPage({super.key, this.username});
 
   @override
   _ShopPageState createState() => _ShopPageState();
@@ -54,8 +56,8 @@ class _ShopPageState extends State<ShopPage> {
     return groupedData;
   }
 
-  Widget buildCard(
-      BuildContext context, Map<String, dynamic> bag, String category) {
+  Widget buildCard(BuildContext context, Map<String, dynamic> bag,
+      String category, String type) {
     double cardWidth = 200.0;
     int stock = bag['stock'] ?? 0;
 
@@ -98,15 +100,25 @@ class _ShopPageState extends State<ShopPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      (bag['name'].toString().length >= 13)
-                          ? '${bag['name'].toString().substring(0, 13)}...'
-                          : bag['name'].toString(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
+                    if (type == 'shop') ...[
+                      Text(
+                        (bag['name'].toString().length >= 13)
+                            ? '${bag['name'].toString().substring(0, 13)}...'
+                            : bag['name'].toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      Text(
+                        '${bag['category_name']} - ${bag['name'].toString()}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 4.0),
                     Text(
                       formatCurrency(bag['price']),
@@ -160,12 +172,10 @@ class _ShopPageState extends State<ShopPage> {
   }
 
   void _buyBag(int bagId) async {
-    // Check if the bag is already in the cart
     final isInCart =
         await _databaseHelper.isBagInCart(bagId, widget.username!, 'pending');
 
     if (isInCart) {
-      // ignore: use_build_context_synchronously
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -184,7 +194,6 @@ class _ShopPageState extends State<ShopPage> {
         ),
       );
     } else {
-      // Add the bag to the cart
       await _databaseHelper.addToCart(bagId, 1, widget.username!);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -192,7 +201,7 @@ class _ShopPageState extends State<ShopPage> {
           duration: Duration(seconds: 2),
         ),
       );
-      // Refresh the data to update the UI
+
       _readData();
     }
   }
@@ -207,8 +216,7 @@ class _ShopPageState extends State<ShopPage> {
     if (item['image_path'] != null) {
       return FileImage(File(item['image_path']));
     } else {
-      return const AssetImage('assets/images/no_image.png')
-          as ImageProvider<Object>;
+      return const AssetImage('assets/images/no_image.png');
     }
   }
 
@@ -239,14 +247,13 @@ class _ShopPageState extends State<ShopPage> {
                   margin: const EdgeInsets.only(bottom: 16.0),
                 ),
               ),
-              // Image at the top center
               Container(
                 width: double.infinity,
                 height: 200.0,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
                   image: DecorationImage(
-                    image: getImageProvider(item)!, // Explicit casting
+                    image: getImageProvider(item)!,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -282,7 +289,7 @@ class _ShopPageState extends State<ShopPage> {
                   ],
                 ),
               ),
-              const Spacer(), // Add spacer to push the button to the bottom
+              const Spacer(),
               Container(
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(16.0),
@@ -338,7 +345,7 @@ class _ShopPageState extends State<ShopPage> {
                     bag['price'].toString(),
                   ],
                   builder: (bag) =>
-                      buildCard(context, bag, bag['category_name']),
+                      buildCard(context, bag, bag['category_name'], 'search'),
                 ),
               );
             },
@@ -369,7 +376,8 @@ class _ShopPageState extends State<ShopPage> {
                       itemBuilder: (context, index) {
                         Map<String, dynamic> bag = _originalBagList[
                             _originalBagList.length - index - 1];
-                        return buildCard(context, bag, bag['category_name']);
+                        return buildCard(
+                            context, bag, bag['category_name'], 'shop');
                       },
                     )
                   : const Center(
@@ -410,7 +418,7 @@ class _ShopPageState extends State<ShopPage> {
                                 Map<String, dynamic> bag =
                                     categoryItems[itemIndex];
                                 return buildCard(
-                                    context, bag, bag['category_name']);
+                                    context, bag, bag['category_name'], 'shop');
                               },
                             )
                           : const Center(

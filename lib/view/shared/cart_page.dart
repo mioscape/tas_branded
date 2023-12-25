@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, avoid_print, library_private_types_in_public_api
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,7 +9,7 @@ import 'package:intl/intl.dart';
 class CartPage extends StatefulWidget {
   final String? username;
 
-  CartPage({this.username});
+  const CartPage({super.key, this.username});
 
   @override
   _CartPageState createState() => _CartPageState();
@@ -21,14 +23,13 @@ class _CartPageState extends State<CartPage>
   @override
   void initState() {
     super.initState();
-    // Initialize the TabController
+
     _databaseHelper = DatabaseHelper();
     _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    // Dispose of the TabController when the widget is disposed
     _tabController.dispose();
     super.dispose();
   }
@@ -39,7 +40,7 @@ class _CartPageState extends State<CartPage>
       appBar: AppBar(
         title: const Text('Cart'),
         bottom: TabBar(
-          controller: _tabController, // Set the TabController
+          controller: _tabController,
           tabs: const [
             Tab(text: 'Pending'),
             Tab(text: 'Done'),
@@ -47,7 +48,7 @@ class _CartPageState extends State<CartPage>
         ),
       ),
       body: TabBarView(
-        controller: _tabController, // Set the TabController
+        controller: _tabController,
         children: [
           _buildTabContent('pending'),
           _buildTabContent('done'),
@@ -61,7 +62,9 @@ class _CartPageState extends State<CartPage>
       future: _databaseHelper.getCartItems(widget.username!, status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -72,17 +75,15 @@ class _CartPageState extends State<CartPage>
           List<Map<String, dynamic>> cartItems = snapshot.data!;
           Future<void> readData() async {
             try {
-              final List<Map<String, dynamic>> _cartItems =
+              final List<Map<String, dynamic>> cartItems0 =
                   await _databaseHelper.getCartItems(
                       widget.username!, 'pending');
 
-              // Update the UI with the new cart items
               setState(() {
-                cartItems = _cartItems;
+                cartItems = cartItems0;
               });
             } catch (e) {
               print('Error reading data: $e');
-              // Handle the error, e.g., show an error message to the user
             }
           }
 
@@ -91,13 +92,11 @@ class _CartPageState extends State<CartPage>
             itemBuilder: (context, index) {
               Map<String, dynamic> cartItem = cartItems[index];
 
-              void _decrementQuantity(StateSetter setState) {
+              void decrementQuantity(StateSetter setState) {
                 if (cartItem['quantity'] > 1) {
                   setState(() {
-                    // If the quantity is greater than 1, decrement it
                     cartItem['quantity']--;
 
-                    // Call your method to update the cart in the database
                     _databaseHelper.updateCartItemQuantity(
                       cartItem['id'],
                       cartItem['quantity'],
@@ -106,7 +105,7 @@ class _CartPageState extends State<CartPage>
                 }
               }
 
-              void _incrementQuantity(StateSetter setState) {
+              void incrementQuantity(StateSetter setState) {
                 if (cartItem['quantity'] < cartItem['stock']) {
                   setState(() {
                     cartItem['quantity']++;
@@ -164,7 +163,6 @@ class _CartPageState extends State<CartPage>
                               margin: const EdgeInsets.only(bottom: 16.0),
                             ),
                           ),
-                          // Image at the top center
                           Container(
                             width: double.infinity,
                             height: 200.0,
@@ -187,7 +185,7 @@ class _CartPageState extends State<CartPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  cartItem['name'],
+                                  '${cartItem['category_name']} - ${cartItem['name']}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20.0,
@@ -223,7 +221,6 @@ class _CartPageState extends State<CartPage>
                 margin: const EdgeInsets.all(8.0),
                 child: InkWell(
                   onTap: () {
-                    // _navigateToCartItemDetails(context, cartItem);
                     showCartItemDetails(cartItem);
                   },
                   child: Column(
@@ -252,9 +249,7 @@ class _CartPageState extends State<CartPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              (cartItem['name'].toString().length >= 50)
-                                  ? '${cartItem['name'].toString().substring(0, 50)}...'
-                                  : cartItem['name'].toString(),
+                              '${cartItem['category_name']} - ${cartItem['name'].toString()}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18.0,
@@ -296,9 +291,9 @@ class _CartPageState extends State<CartPage>
                                           ...[]
                                         else ...[
                                           IconButton(
-                                            icon: Icon(Icons.remove),
+                                            icon: const Icon(Icons.remove),
                                             onPressed: () {
-                                              _decrementQuantity(setState);
+                                              decrementQuantity(setState);
                                             },
                                           ),
                                         ],
@@ -314,7 +309,7 @@ class _CartPageState extends State<CartPage>
                                           if (status == 'done') ...[
                                             Text(
                                               ' ${cartItem['quantity']}',
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 fontSize: 16.0,
                                               ),
                                             ),
@@ -332,11 +327,11 @@ class _CartPageState extends State<CartPage>
                                                 ),
                                                 textAlign: TextAlign.center,
                                                 readOnly: true,
-                                                decoration: InputDecoration(
+                                                decoration:
+                                                    const InputDecoration(
                                                   border: OutlineInputBorder(),
                                                   contentPadding:
-                                                      const EdgeInsets
-                                                          .symmetric(
+                                                      EdgeInsets.symmetric(
                                                     horizontal: 8,
                                                   ),
                                                 ),
@@ -349,9 +344,9 @@ class _CartPageState extends State<CartPage>
                                           ...[]
                                         else ...[
                                           IconButton(
-                                            icon: Icon(Icons.add),
+                                            icon: const Icon(Icons.add),
                                             onPressed: () {
-                                              _incrementQuantity(setState);
+                                              incrementQuantity(setState);
                                             },
                                           ),
                                         ],
@@ -474,10 +469,6 @@ class _CartPageState extends State<CartPage>
     try {
       await _databaseHelper.checkoutCart(widget.username!, bagId);
 
-      setState(() {
-        // Update the UI with the new cart items
-      });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Checkout successful!'),
@@ -499,103 +490,5 @@ class _CartPageState extends State<CartPage>
     final NumberFormat formatCurrency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return formatCurrency.format(price);
-  }
-}
-
-class CartItemWidget extends StatefulWidget {
-  final Map<String, dynamic> bagDetails;
-
-  CartItemWidget({required this.bagDetails});
-
-  @override
-  _CartItemWidgetState createState() => _CartItemWidgetState();
-}
-
-class _CartItemWidgetState extends State<CartItemWidget> {
-  late TextEditingController _quantityController;
-  late int maxQuantity;
-
-  @override
-  void initState() {
-    super.initState();
-    _quantityController = TextEditingController();
-    // Initialize maxQuantity based on bagDetails['stock']
-    maxQuantity = widget.bagDetails['stock'] ?? 0;
-  }
-
-  @override
-  void dispose() {
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(widget.bagDetails['name'].toString()),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text('Quantity:'),
-              SizedBox(
-                width: 120,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove),
-                      onPressed: () {
-                        // Decrease quantity
-                        int currentQuantity =
-                            int.parse(_quantityController.text);
-                        if (currentQuantity > 1) {
-                          setState(() {
-                            _quantityController.text =
-                                (currentQuantity - 1).toString();
-                          });
-                        }
-                      },
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _quantityController,
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          // Update the quantity in your state or controller
-                          // You can add validation to ensure it doesn't exceed maxQuantity
-                          // Use TextEditingController or another state management solution
-                          // to manage the quantity for each item in the cart
-                        },
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () {
-                        // Increase quantity
-                        int currentQuantity =
-                            int.parse(_quantityController.text);
-                        if (currentQuantity < maxQuantity) {
-                          setState(() {
-                            _quantityController.text =
-                                (currentQuantity + 1).toString();
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      // Add more widgets as needed
-    );
   }
 }
