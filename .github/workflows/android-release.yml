@@ -1,39 +1,55 @@
-name: Release Workflow
+name: Android Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
-          node-version: 14
+          distribution: 'zulu'
+          java-version: "12.x"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.16.2"
+          channel: 'stable'
+      - name: Get dependencies
+        run: flutter pub get
 
-      - name: Install dependencies
-        run: npm install -g auto
+      - name: Set Flutter version
+        run: |
+          echo "Flutter version : $(flutter --version)"
 
-      - name: Run auto
-        run: auto -v
 
-      - name: Build APK
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: echo "::set-output name=version::$(yaml2json pubspec.yaml | jq -r .version)"
+
+      - name: Start release build
         run: flutter build apk --split-per-abi
 
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.run_auto.outputs.tag }}
-          release_name: ${{ steps.run_auto.outputs.tag }}
-          body: ${{ steps.run_auto.outputs.notes }}
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: |
+            Changes in this release:
+            - Add release notes here
 
       - name: Upload APK to Release
         uses: actions/upload-artifact@v2
