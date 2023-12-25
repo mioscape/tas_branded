@@ -40,6 +40,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
@@ -51,7 +54,7 @@ jobs:
 
       - name: Extract version from pubspec.yaml
         id: extract_version
-        run: echo "::set-output name=version::$(yaml2json pubspec.yaml | jq -r .version)"
+        run: echo "::set-output name=version::$(cat pubspec.yaml | grep 'version:' | awk '{print $2}' | sed 's/[",]//g')"
 
       - name: Create Release
         run: |
