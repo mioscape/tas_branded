@@ -31,7 +31,7 @@ jobs:
         run: flutter pub get
 
       - name: Build APKs
-        run: flutter build apk --release
+        run: flutter build apk --split-per-abi
 
       - name: Archive APKs
         run: |
