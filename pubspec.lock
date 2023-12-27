@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  currency_text_input_formatter:
+    dependency: "direct main"
+    description:
+      name: currency_text_input_formatter
+      sha256: "27edf2ac1564c2968d711c1849562d668afb4fae2fe2f6a81e6c072f366fc2e5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.13"
   fake_async:
     dependency: transitive
     description:
@@ -228,10 +236,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.0"
+    version: "0.19.0"
   lints:
     dependency: transitive
     description:

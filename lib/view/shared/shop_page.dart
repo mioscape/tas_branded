@@ -3,8 +3,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
-import 'package:intl/intl.dart';
 import 'package:search_page/search_page.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class ShopPage extends StatefulWidget {
   final String? username;
@@ -19,6 +19,11 @@ class _ShopPageState extends State<ShopPage> {
   late DatabaseHelper _databaseHelper;
   List<Map<String, dynamic>> _originalBagList = [];
   Map<int, List<Map<String, dynamic>>> _categorizedBag = {};
+  final _currencyFormatter = CurrencyTextInputFormatter(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
@@ -121,7 +126,7 @@ class _ShopPageState extends State<ShopPage> {
                     ],
                     const SizedBox(height: 4.0),
                     Text(
-                      formatCurrency(bag['price']),
+                      _currencyFormatter.format(bag['price'].toString()),
                       style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16.0,
@@ -206,12 +211,6 @@ class _ShopPageState extends State<ShopPage> {
     }
   }
 
-  String formatCurrency(int price) {
-    final NumberFormat formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return formatCurrency.format(price);
-  }
-
   ImageProvider<Object>? getImageProvider(Map<String, dynamic> item) {
     if (item['image_path'] != null) {
       return FileImage(File(item['image_path']));
@@ -273,7 +272,7 @@ class _ShopPageState extends State<ShopPage> {
                     ),
                     const SizedBox(height: 8.0),
                     Text(
-                      formatCurrency(item['price']),
+                      _currencyFormatter.format(item['price'].toString()),
                       style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 18.0,

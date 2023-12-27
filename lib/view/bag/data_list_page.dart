@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
 import 'package:bag_branded/view/bag/edit_page.dart';
-import 'package:intl/intl.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class DataListPage extends StatefulWidget {
   final String username;
@@ -22,6 +22,11 @@ class _DataListPageState extends State<DataListPage> {
   List<Map<String, dynamic>> _bagList = [];
   Map<String, List<Map<String, dynamic>>> categoryData = {};
   final TextEditingController _passwordController = TextEditingController();
+  final _currencyFormatter = CurrencyTextInputFormatter(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
@@ -173,8 +178,13 @@ class _DataListPageState extends State<DataListPage> {
         ),
       ),
       title: Text(bag['name']),
-      subtitle: Text(
-          'Price: ${formatCurrency(bag['price'])}\nStock: ${bag['stock']}'),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Price: ${_currencyFormatter.format(bag['price'].toString())}'),
+          Text('Stock: ${bag['stock']}'),
+        ],
+      ),
       trailing: PopupMenuButton<String>(
         itemBuilder: (BuildContext context) {
           return {'Edit', 'Delete', 'Open Image'}.map((String choice) {
@@ -387,11 +397,5 @@ class _DataListPageState extends State<DataListPage> {
         );
       },
     );
-  }
-
-  String formatCurrency(int price) {
-    final NumberFormat formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return formatCurrency.format(price);
   }
 }

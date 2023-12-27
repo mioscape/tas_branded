@@ -7,6 +7,7 @@ import 'package:bag_branded/models/stock_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class EditBagPage extends StatefulWidget {
   final int bagId;
@@ -24,6 +25,11 @@ class _EditBagPageState extends State<EditBagPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final _currencyFormatter = CurrencyTextInputFormatter(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
   File? _selectedImage;
 
   @override
@@ -39,7 +45,8 @@ class _EditBagPageState extends State<EditBagPage> {
 
     if (bagData != null) {
       _nameController.text = bagData['name'];
-      _priceController.text = bagData['price'].toString();
+      _priceController.text =
+          _currencyFormatter.format(bagData['price'].toString());
       _stockController.text = bagData['stock'].toString();
     }
   }
@@ -77,6 +84,7 @@ class _EditBagPageState extends State<EditBagPage> {
             TextField(
               controller: _priceController,
               keyboardType: TextInputType.number,
+              inputFormatters: [_currencyFormatter],
               decoration: const InputDecoration(
                   labelText: 'Price', border: OutlineInputBorder()),
             ),
@@ -138,7 +146,7 @@ class _EditBagPageState extends State<EditBagPage> {
     Bag bag = Bag(
       id: widget.bagId,
       name: _nameController.text.trim(),
-      price: int.tryParse(_priceController.text) ?? 0,
+      price: _currencyFormatter.getUnformattedValue().toInt(),
       imagePath: _selectedImage?.path ?? bagData?['image_path'],
       categoryId: 0,
       addedBy: '',

@@ -6,6 +6,7 @@ import 'package:bag_branded/models/bag_model.dart';
 import 'package:bag_branded/services/database_helper.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class AddBagPage extends StatefulWidget {
   final String username;
@@ -22,6 +23,8 @@ class _AddBagPageState extends State<AddBagPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final _currencyFormatter = CurrencyTextInputFormatter(
+      locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   int? _selectedCategoryId;
   List<Map<String, dynamic>> _categories = [];
   File? _selectedImage;
@@ -95,6 +98,7 @@ class _AddBagPageState extends State<AddBagPage> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [_currencyFormatter],
                   ),
                   const SizedBox(height: 8.0),
                   TextField(
@@ -182,11 +186,12 @@ class _AddBagPageState extends State<AddBagPage> {
     Bag bag = Bag(
       id: 0,
       name: _nameController.text.trim(),
-      price: int.tryParse(_priceController.text) ?? 0,
+      price: _currencyFormatter.getUnformattedValue().toInt(),
       categoryId: _selectedCategoryId!,
       addedBy: username,
       imagePath: _selectedImage!.path,
     );
+
     Stock stock = Stock(
       id: 0,
       stock: int.tryParse(_stockController.text) ?? 0,

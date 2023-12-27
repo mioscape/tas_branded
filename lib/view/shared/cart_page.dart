@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:bag_branded/services/database_helper.dart';
-import 'package:intl/intl.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class CartPage extends StatefulWidget {
   final String? username;
@@ -19,6 +19,11 @@ class _CartPageState extends State<CartPage>
     with SingleTickerProviderStateMixin {
   late DatabaseHelper _databaseHelper;
   late TabController _tabController;
+  final _currencyFormatter = CurrencyTextInputFormatter(
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
@@ -193,7 +198,8 @@ class _CartPageState extends State<CartPage>
                                 ),
                                 const SizedBox(height: 8.0),
                                 Text(
-                                  formatCurrency(cartItem['price']),
+                                  _currencyFormatter
+                                      .format(cartItem['price'].toString()),
                                   style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 18.0,
@@ -257,7 +263,8 @@ class _CartPageState extends State<CartPage>
                             ),
                             const SizedBox(height: 4.0),
                             Text(
-                              formatCurrency(cartItem['price']),
+                              _currencyFormatter
+                                  .format(cartItem['price'].toString()),
                               style: const TextStyle(
                                 color: Colors.grey,
                               ),
@@ -265,7 +272,7 @@ class _CartPageState extends State<CartPage>
                             if (status == 'done') ...[
                               const SizedBox(height: 4.0),
                               Text(
-                                'Total: ${formatCurrency(cartItem['price'] * cartItem['quantity'])}',
+                                'Total: ${_currencyFormatter.format((cartItem['price'] * cartItem['quantity']).toString())}',
                                 style: const TextStyle(
                                   color: Colors.grey,
                                 ),
@@ -423,7 +430,7 @@ class _CartPageState extends State<CartPage>
                                   builder: (context) => AlertDialog(
                                     title: const Text('Checkout'),
                                     content: Text(
-                                      'Are you sure you want to checkout? You will not be able to edit your cart after this.\nTotal: ${formatCurrency(cartItem['price'] * cartItem['quantity'])}',
+                                      'Are you sure you want to checkout? You will not be able to edit your cart after this.\nTotal: ${_currencyFormatter.format((cartItem['price'] * cartItem['quantity']).toString())}',
                                     ),
                                     actions: [
                                       TextButton(
@@ -484,11 +491,5 @@ class _CartPageState extends State<CartPage>
         ),
       );
     }
-  }
-
-  String formatCurrency(int price) {
-    final NumberFormat formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return formatCurrency.format(price);
   }
 }
