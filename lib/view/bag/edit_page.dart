@@ -79,74 +79,76 @@ class _EditBagPageState extends State<EditBagPage> {
       appBar: AppBar(
         title: const Text('Edit Bag Data'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Bag name',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Bag name',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            TextField(
-              controller: _priceController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [_currencyFormatter],
-              decoration: const InputDecoration(
-                labelText: 'Price',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 8.0),
+              TextField(
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [_currencyFormatter],
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            TextField(
-              controller: _stockController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Stock',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 8.0),
+              TextField(
+                controller: _stockController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Stock',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 8.0),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 8.0),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
               ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                _selectImage();
-              },
-              child: const Text('Choose Image'),
-            ),
-            if (_selectedImage != null)
-              Column(
-                children: [
-                  const SizedBox(height: 8),
-                  Image.file(_selectedImage!, height: 100),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      _openImage(_selectedImage!.path);
-                    },
-                    child: const Text('Preview Image'),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  _selectImage();
+                },
+                child: const Text('Choose Image'),
               ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                _updateBagData();
-              },
-              child: const Text('Save Changes'),
-            ),
-          ],
+              if (_selectedImage != null)
+                Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Image.file(_selectedImage!, height: 100),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        _openImage(_selectedImage!.path);
+                      },
+                      child: const Text('Preview Image'),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  _updateBagData();
+                },
+                child: const Text('Save Changes'),
+              ),
+            ],
+          ),
         ),
       ),
     );

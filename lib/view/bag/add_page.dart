@@ -77,104 +77,106 @@ class _AddBagPageState extends State<AddBagPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _categories.isEmpty
-            ? const Center(
-                child: Text('No categories available, add a category first.'),
-              )
-            : Column(
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Bag name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  TextField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(
-                      labelText: 'Price',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [_currencyFormatter],
-                  ),
-                  const SizedBox(height: 8.0),
-                  TextField(
-                    controller: _stockController,
-                    decoration: const InputDecoration(
-                      labelText: 'Stock',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 8.0),
-                  TextField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description', // Add description field
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 8.0),
-                  DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                      border: OutlineInputBorder(),
-                    ),
-                    value: _selectedCategoryId,
-                    onChanged: (int? newValue) {
-                      setState(() {
-                        _selectedCategoryId = newValue;
-                      });
-                    },
-                    items: [
-                      const DropdownMenuItem<int>(
-                        value: null,
-                        child: Text(''),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _categories.isEmpty
+              ? const Center(
+                  child: Text('No categories available, add a category first.'),
+                )
+              : Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Bag name',
+                        border: OutlineInputBorder(),
                       ),
-                      ..._categories.map<DropdownMenuItem<int>>((category) {
-                        return DropdownMenuItem<int>(
-                          value: category['id'],
-                          child: Text(category['name']),
-                        );
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      _selectImage();
-                    },
-                    child: const Text('Choose Image'),
-                  ),
-                  if (_selectedImage != null)
-                    Column(
-                      children: [
-                        const SizedBox(height: 8),
-                        Image.file(_selectedImage!, height: 100),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            _openImage(_selectedImage!.path);
-                          },
-                          child: const Text('Preview Image'),
+                    ),
+                    const SizedBox(height: 8.0),
+                    TextField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Price',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [_currencyFormatter],
+                    ),
+                    const SizedBox(height: 8.0),
+                    TextField(
+                      controller: _stockController,
+                      decoration: const InputDecoration(
+                        labelText: 'Stock',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 8.0),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description', // Add description field
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 8.0),
+                    DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      value: _selectedCategoryId,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          _selectedCategoryId = newValue;
+                        });
+                      },
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text(''),
                         ),
+                        ..._categories.map<DropdownMenuItem<int>>((category) {
+                          return DropdownMenuItem<int>(
+                            value: category['id'],
+                            child: Text(category['name']),
+                          );
+                        }),
                       ],
                     ),
-                  const SizedBox(height: 16.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      _addBag(context);
-                    },
-                    child: const Text('Add Bag'),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        _selectImage();
+                      },
+                      child: const Text('Choose Image'),
+                    ),
+                    if (_selectedImage != null)
+                      Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          Image.file(_selectedImage!, height: 100),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              _openImage(_selectedImage!.path);
+                            },
+                            child: const Text('Preview Image'),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        _addBag(context);
+                      },
+                      child: const Text('Add Bag'),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
