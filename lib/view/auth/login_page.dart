@@ -128,10 +128,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
+      String lowercaseUsername = _usernameController.text.toLowerCase();
+      String lowercasePassword = _passwordController.text.toLowerCase();
+
       Map<String, dynamic> validationResult =
           await DatabaseHelper().validateLogin(
-        _usernameController.text,
-        _passwordController.text,
+        lowercaseUsername,
+        lowercasePassword,
       );
 
       bool isValidLogin = validationResult['isValid'];

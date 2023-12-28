@@ -154,9 +154,12 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register(BuildContext context) async {
+    String lowercaseUsername = _usernameController.text.toLowerCase();
+    String lowercasePassword = _passwordController.text.toLowerCase();
+
     Users users = Users(
-      username: _usernameController.text,
-      password: _passwordController.text,
+      username: lowercaseUsername,
+      password: lowercasePassword,
       userType: _selectedUserType,
     );
 
