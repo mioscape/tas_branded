@@ -339,7 +339,8 @@ class _CartPageState extends State<CartPage>
                                             },
                                           ),
                                         ],
-                                        if (cartItem['stock'] == 0) ...[
+                                        if (cartItem['stock'] == 0 &&
+                                            status == 'pending') ...[
                                           const Text(
                                             ' Out of Stock',
                                             style: TextStyle(
