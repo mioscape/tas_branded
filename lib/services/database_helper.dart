@@ -532,7 +532,6 @@ class DatabaseHelper {
 
     if (bagDetails.isNotEmpty) {
       final int availableStock = (bagDetails.first['stock'] as int?) ?? 0;
-      print('Available stock: $availableStock');
 
       final int totalQuantityInCart = Sqflite.firstIntValue(await db.rawQuery(
             'SELECT SUM(quantity) FROM cart WHERE bag_id = ? AND username = ? AND status = ?',
@@ -540,11 +539,8 @@ class DatabaseHelper {
           )) ??
           0;
 
-      print('Total quantity in cart: $totalQuantityInCart');
-
       if (totalQuantityInCart <= availableStock) {
         final int remainingStock = availableStock - totalQuantityInCart;
-        print('Remaining stock: $remainingStock');
 
         await db.update(
           'stock_bag',
