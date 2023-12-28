@@ -23,6 +23,7 @@ class _AddBagPageState extends State<AddBagPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final _currencyFormatter = CurrencyTextInputFormatter(
       locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   int? _selectedCategoryId;
@@ -34,6 +35,7 @@ class _AddBagPageState extends State<AddBagPage> {
     _nameController.dispose();
     _priceController.dispose();
     _stockController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -108,6 +110,15 @@ class _AddBagPageState extends State<AddBagPage> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 8.0),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description', // Add description field
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
                   ),
                   const SizedBox(height: 8.0),
                   DropdownButtonFormField<int>(
@@ -193,6 +204,7 @@ class _AddBagPageState extends State<AddBagPage> {
     if (_nameController.text.trim().isEmpty ||
         _priceController.text.trim().isEmpty ||
         _stockController.text.trim().isEmpty ||
+        _descriptionController.text.trim().isEmpty ||
         _selectedCategoryId == null ||
         _selectedImage == null) {
       showDialog(
@@ -222,6 +234,7 @@ class _AddBagPageState extends State<AddBagPage> {
       categoryId: _selectedCategoryId!,
       addedBy: username,
       imagePath: _selectedImage!.path,
+      description: _descriptionController.text.trim(),
     );
 
     Stock stock = Stock(
@@ -241,6 +254,7 @@ class _AddBagPageState extends State<AddBagPage> {
     _nameController.clear();
     _priceController.clear();
     _stockController.clear();
+    _descriptionController.clear();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

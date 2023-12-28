@@ -22,6 +22,7 @@ class DatabaseHelper {
   static const String nameColumn = 'name';
   static const String priceColumn = 'price';
   static const String imagePathColumn = 'image_path';
+  static const String descriptionColumn = 'description';
 
   static const String addedByColumn = 'added_by';
   static const String categoryIdColumn = 'category_id';
@@ -65,6 +66,7 @@ class DatabaseHelper {
             category_id INTEGER,
   			    added_by TEXT,
             image_path TEXT,
+            description TEXT,
             FOREIGN KEY (category_id) REFERENCES category_bag(id),
             FOREIGN KEY (added_by) REFERENCES users(username)
           )
@@ -170,6 +172,7 @@ class DatabaseHelper {
           DatabaseHelper.categoryIdColumn: bag.categoryId,
           DatabaseHelper.imagePathColumn: bag.imagePath,
           DatabaseHelper.addedByColumn: bag.addedBy,
+          DatabaseHelper.descriptionColumn: bag.description,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -283,6 +286,7 @@ class DatabaseHelper {
         DatabaseHelper.nameColumn: bag.name,
         DatabaseHelper.priceColumn: bag.price,
         DatabaseHelper.imagePathColumn: bag.imagePath,
+        DatabaseHelper.descriptionColumn: bag.description,
       },
       where: 'id = ?',
       whereArgs: [bag.id],
@@ -411,6 +415,8 @@ class DatabaseHelper {
       bag.name AS bag_name,
       bag.image_path AS bag_image_path,
       bag.price AS bag_price,
+      bag.category_id AS bag_category_id,
+      bag.description AS description,
       COALESCE(stock_bag.stock, 0) AS bag_stock,
       category_bag.id AS category_id,
       category_bag.name AS category_name
@@ -430,6 +436,7 @@ class DatabaseHelper {
         'bag_id': cartItem['bag_id'],
         'name': cartItem['bag_name'],
         'image_path': cartItem['bag_image_path'],
+        'description': cartItem['description'],
         'price': cartItem['bag_price'],
         'stock': cartItem['bag_stock'],
         'category_id': cartItem['category_id'],

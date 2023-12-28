@@ -25,6 +25,7 @@ class _EditBagPageState extends State<EditBagPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _stockController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final _currencyFormatter = CurrencyTextInputFormatter(
     locale: 'id_ID',
     symbol: 'Rp ',
@@ -48,6 +49,7 @@ class _EditBagPageState extends State<EditBagPage> {
       _priceController.text =
           _currencyFormatter.format(bagData['price'].toString());
       _stockController.text = bagData['stock'].toString();
+      _descriptionController.text = bagData['description'] ?? '';
       String? imagePath = bagData['image_path'];
       if (imagePath != null && imagePath.isNotEmpty) {
         setState(() {
@@ -106,6 +108,15 @@ class _EditBagPageState extends State<EditBagPage> {
                 labelText: 'Stock',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 8.0),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -166,7 +177,8 @@ class _EditBagPageState extends State<EditBagPage> {
         await _databaseHelper.getBagById(widget.bagId);
     if (_nameController.text.trim().isEmpty ||
         _priceController.text.trim().isEmpty ||
-        _stockController.text.trim().isEmpty) {
+        _stockController.text.trim().isEmpty ||
+        _descriptionController.text.trim().isEmpty) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -194,6 +206,7 @@ class _EditBagPageState extends State<EditBagPage> {
       imagePath: _selectedImage?.path ?? bagData?['image_path'],
       categoryId: 0,
       addedBy: '',
+      description: _descriptionController.text,
     );
 
     Stock stock = Stock(

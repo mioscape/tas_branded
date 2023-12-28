@@ -222,6 +222,7 @@ class _ShopPageState extends State<ShopPage> {
   void _showItemDetails(Map<String, dynamic> item, String category) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16.0),
@@ -229,89 +230,123 @@ class _ShopPageState extends State<ShopPage> {
         ),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 40.0,
-                  height: 4.0,
+        return SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 40.0,
+                    height: 4.0,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2.0),
+                    ),
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  height: 300.0,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.0),
-                  ),
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                ),
-              ),
-              Container(
-                width: double.infinity,
-                height: 200.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  image: DecorationImage(
-                    image: getImageProvider(item)!,
-                    fit: BoxFit.cover,
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: DecorationImage(
+                      image: getImageProvider(item)!,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$category - ${item['name']}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      _currencyFormatter.format(item['price'].toString()),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 18.0,
-                      ),
-                    ),
-                    Text(
-                      'Stock: ${item['stock']}',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(16.0),
-                child: item['stock'] > 0
-                    ? OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          fixedSize: const Size(400.0, 50.0),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$category - ${item['name']}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20.0,
                         ),
-                        onPressed: () {
-                          _buyBag(item['id']);
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Add to Cart'),
-                      )
-                    : const Text(
-                        'Out of Stock',
-                        style: TextStyle(
-                          color: Colors.red,
+                      ),
+                      const SizedBox(height: 8.0),
+                      Text(
+                        _currencyFormatter.format(item['price'].toString()),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 18.0,
+                        ),
+                      ),
+                      Text(
+                        'Stock: ${item['stock']}',
+                        style: const TextStyle(
+                          color: Colors.grey,
                           fontSize: 16.0,
                         ),
                       ),
-              ),
-            ],
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Container(
+                  constraints: const BoxConstraints(
+                    maxHeight: 200.0, // Adjust the maxHeight as needed
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Description:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${item['description'] ?? 'No description available'}',
+                                    style: const TextStyle(
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                ])),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0), // Adjusted spacing
+                Container(
+                  alignment: Alignment.center,
+                  child: item['stock'] > 0
+                      ? OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            fixedSize: const Size(400.0, 50.0),
+                          ),
+                          onPressed: () {
+                            _buyBag(item['id']);
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Add to Cart'),
+                        )
+                      : const Text(
+                          'Out of Stock',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                ),
+              ],
+            ),
           ),
         );
       },

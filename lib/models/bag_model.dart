@@ -5,6 +5,7 @@ class Bag {
   final int categoryId;
   final String addedBy;
   final String imagePath;
+  final String description;
 
   Bag({
     required this.id,
@@ -13,5 +14,6 @@ class Bag {
     required this.categoryId,
     required this.addedBy,
     required this.imagePath,
+    required this.description,
   });
 }

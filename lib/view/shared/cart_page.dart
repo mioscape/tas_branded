@@ -144,6 +144,7 @@ class _CartPageState extends State<CartPage>
               void showCartItemDetails(Map<String, dynamic> cartItem) {
                 showModalBottomSheet(
                   context: context,
+                  isScrollControlled: true,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16.0),
@@ -151,72 +152,106 @@ class _CartPageState extends State<CartPage>
                     ),
                   ),
                   builder: (context) {
-                    return Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Align(
-                            alignment: Alignment.center,
-                            child: Container(
-                              width: 40.0,
-                              height: 4.0,
+                    return SingleChildScrollView(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: 40.0,
+                                height: 4.0,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(2.0),
+                                ),
+                                margin: const EdgeInsets.only(bottom: 16.0),
+                              ),
+                            ),
+                            Container(
+                              width: double.infinity,
+                              height: 300.0,
                               decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(2.0),
-                              ),
-                              margin: const EdgeInsets.only(bottom: 16.0),
-                            ),
-                          ),
-                          Container(
-                            width: double.infinity,
-                            height: 200.0,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.0),
-                              image: DecorationImage(
-                                image: cartItem['image_path'] != null
-                                    ? FileImage(File(cartItem['image_path']))
-                                    : const AssetImage(
-                                            'assets/images/no_image.png')
-                                        as ImageProvider,
-                                fit: BoxFit.cover,
+                                borderRadius: BorderRadius.circular(8.0),
+                                image: DecorationImage(
+                                  image: cartItem['image_path'] != null
+                                      ? FileImage(File(cartItem['image_path']))
+                                      : const AssetImage(
+                                              'assets/images/no_image.png')
+                                          as ImageProvider,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                          ),
-                          const Divider(),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${cartItem['category_name']} - ${cartItem['name']}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20.0,
+                            const Divider(),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${cartItem['category_name']} - ${cartItem['name']}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20.0,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  _currencyFormatter
-                                      .format(cartItem['price'].toString()),
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 18.0,
+                                  const SizedBox(height: 8.0),
+                                  Text(
+                                    _currencyFormatter
+                                        .format(cartItem['price'].toString()),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 18.0,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  'Stock: ${cartItem['stock']}',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16.0,
+                                  Text(
+                                    'Stock: ${cartItem['stock']}',
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16.0,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8.0),
-                              ],
+                                  const SizedBox(height: 8.0),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const Divider(),
+                            Container(
+                              constraints: const BoxConstraints(
+                                maxHeight:
+                                    200.0, // Adjust the maxHeight as needed
+                              ),
+                              child: SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Description:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${cartItem['description'] ?? 'No description available'}',
+                                        style: const TextStyle(
+                                          fontSize: 16.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
