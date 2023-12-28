@@ -48,6 +48,12 @@ class _EditBagPageState extends State<EditBagPage> {
       _priceController.text =
           _currencyFormatter.format(bagData['price'].toString());
       _stockController.text = bagData['stock'].toString();
+      String? imagePath = bagData['image_path'];
+      if (imagePath != null && imagePath.isNotEmpty) {
+        setState(() {
+          _selectedImage = File(imagePath);
+        });
+      }
     }
   }
 
@@ -78,7 +84,9 @@ class _EditBagPageState extends State<EditBagPage> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
-                  labelText: 'Bag name', border: OutlineInputBorder()),
+                labelText: 'Bag name',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 8.0),
             TextField(
@@ -86,14 +94,18 @@ class _EditBagPageState extends State<EditBagPage> {
               keyboardType: TextInputType.number,
               inputFormatters: [_currencyFormatter],
               decoration: const InputDecoration(
-                  labelText: 'Price', border: OutlineInputBorder()),
+                labelText: 'Price',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 8.0),
             TextField(
               controller: _stockController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                  labelText: 'Stock', border: OutlineInputBorder()),
+                labelText: 'Stock',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -103,7 +115,19 @@ class _EditBagPageState extends State<EditBagPage> {
               child: const Text('Choose Image'),
             ),
             if (_selectedImage != null)
-              Image.file(_selectedImage!, height: 100),
+              Column(
+                children: [
+                  const SizedBox(height: 8),
+                  Image.file(_selectedImage!, height: 100),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      _openImage(_selectedImage!.path);
+                    },
+                    child: const Text('Preview Image'),
+                  ),
+                ],
+              ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -114,6 +138,26 @@ class _EditBagPageState extends State<EditBagPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _openImage(String imagePath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30.0),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

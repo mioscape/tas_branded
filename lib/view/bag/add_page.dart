@@ -142,7 +142,19 @@ class _AddBagPageState extends State<AddBagPage> {
                     child: const Text('Choose Image'),
                   ),
                   if (_selectedImage != null)
-                    Image.file(_selectedImage!, height: 100),
+                    Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        Image.file(_selectedImage!, height: 100),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            _openImage(_selectedImage!.path);
+                          },
+                          child: const Text('Preview Image'),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(
                     onPressed: () {
@@ -153,6 +165,26 @@ class _AddBagPageState extends State<AddBagPage> {
                 ],
               ),
       ),
+    );
+  }
+
+  void _openImage(String imagePath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30.0),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
