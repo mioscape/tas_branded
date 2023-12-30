@@ -30,13 +30,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APKs
-        run: flutter build apk --split-per-abi
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: echo "::set-output name=version::$(cat pubspec.yaml | grep 'version:' | awk '{print $2}' | sed 's/[",]//g')"
 
-      - name: Archive APKs
+      - name: Check if release already exists
+        id: check_release
+        run: gh release view ${{ steps.extract_version.outputs.version }} >/dev/null 2>&1 || echo "Release not found"
+
+      - name: Build and Upload APKs
         run: |
-          mkdir -p release
-          mv build/app/outputs/flutter-apk/*.apk release/
+          if [[ "${{ steps.check_release.outputs.exit-code }}" == "0" ]]; then
+            echo "Release already exists. Skipping build."
+          else
+            flutter build apk --split-per-abi
+            mkdir -p release
+            mv build/app/outputs/flutter-apk/*.apk release/
+          fi
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v2
@@ -44,39 +54,12 @@ jobs:
           name: release
           path: release/
 
-      - name: Extract version from pubspec.yaml
-        id: extract_version
-        run: echo "::set-output name=version::$(cat pubspec.yaml | grep 'version:' | awk '{print $2}' | sed 's/[",]//g')"
-
       - name: Create Release
         run: |
-          gh release create ${{ steps.extract_version.outputs.version }} release/*.apk --generate-notes
+          if [[ "${{ steps.check_release.outputs.exit-code }}" != "0" ]]; then
+            gh release create ${{ steps.extract_version.outputs.version }} release/*.apk --generate-notes
+          else
+            echo "Release already exists. Skipping release creation."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-  # release:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v2
-
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: '14'
-
-  #     - name: Install GitHub CLI
-  #       run: |
-  #         sudo apt-get install gh
-
-  #     - name: Extract version from pubspec.yaml
-  #       id: extract_version
-  #       run: echo "::set-output name=version::$(cat pubspec.yaml | grep 'version:' | awk '{print $2}' | sed 's/[",]//g')"
-
-  #     - name: Create Release
-  #       run: |
-  #         gh release create ${{ steps.extract_version.outputs.version }} release/*.apk
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.TOKEN }}
