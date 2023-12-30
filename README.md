@@ -28,8 +28,8 @@ For detailed instructions, refer to the [Flutter Documentation](https://flutter.
 
 ## Contributing
 
-Bag Branded is a closed-source project and currently not open for external contributions.
+Bag Branded is now an open-source project, and we welcome external contributions! If you'd like to contribute, please follow the guidelines outlined in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is not licensed for open-source use. All rights reserved.
+This project is licensed under the [MIT License](LICENSE.md). Feel free to use, modify, and distribute the code as per the terms of the license.
